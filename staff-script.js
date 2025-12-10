@@ -23,8 +23,7 @@ let menuData = [];
 let cartItems = {};
 let currentTableId = null; 
 
-// --- 2. Dichiarazioni DOM Globali (Saranno popolate in initializeStaffApp) ---
-// Usiamo 'let' in modo che possano essere assegnate dopo DOMContentLoaded.
+// --- 2. Dichiarazioni DOM Globali (Popolate in initializeStaffApp) ---
 let mainContainer, cartList, totalPriceSpan, sendOrderBtn, tableIdDisplay, cartTableDisplay, navQuickLinks;
 
 
@@ -125,8 +124,7 @@ function populateTableSelect(tableSelect) {
 
         currentTableId = e.target.value;
         
-        // ********* CORREZIONE CRITICA DELL'ERRORE "displayId is not defined" *********
-        // La variabile deve essere definita all'interno di questo blocco.
+        // ** CORREZIONE: DEFINIZIONE DI displayId **
         const displayId = currentTableId.replace('TAVOLO_', 'Tavolo ');
         
         // Aggiorna i display
@@ -358,3 +356,99 @@ async function sendOrder(staffUser) {
     }
 
     const total = parseFloat(totalPriceSpan.textContent);
+    const orderDetails = Object.values(cartItems).map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.quantity * item.price
+    }));
+
+    const orderData = {
+        tableId: currentTableId,
+        staffId: staffUser.uid, 
+        staffEmail: staffUser.email,
+        items: orderDetails,
+        total: total,
+        status: 'pending', 
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+    };
+
+    try {
+        await ordersCollection.add(orderData);
+        alert(`Ordine inviato con successo per ${currentTableId}!`);
+        
+        cartItems = {};
+        renderCart();
+
+    } catch (error) {
+        console.error("Errore nell'invio dell'ordine: ", error);
+        alert("Errore nell'invio dell'ordine. Controlla la console.");
+    } finally {
+        if (sendOrderBtn) {
+            sendOrderBtn.disabled = false;
+            sendOrderBtn.textContent = 'Invia Ordine';
+        }
+    }
+}
+
+
+// --- 6. INIZIALIZZAZIONE (Logica di Avvio) ---
+
+/**
+ * Avvia l'applicazione Staff Order-Taking.
+ */
+function initializeStaffApp(user) {
+    
+    // Assegna le variabili DOM globali qui, dove siamo sicuri che il DOM è pronto.
+    window.mainContainer = document.getElementById('menu-container');
+    window.cartList = document.getElementById('cart-list');
+    window.totalPriceSpan = document.getElementById('total-price');
+    window.sendOrderBtn = document.getElementById('send-order-btn');
+    window.tableIdDisplay = document.getElementById('table-id');
+    window.cartTableDisplay = document.getElementById('cart-table-display');
+    window.navQuickLinks = document.getElementById('quick-links');
+
+    const tableSelect = document.getElementById('table-select');
+    
+    if (!mainContainer || !tableSelect) {
+        console.error("ERRORE CRITICO: Elementi DOM essenziali (menu-container o table-select) mancanti nell'HTML.");
+        return;
+    }
+
+    // 1. Blocca inizialmente l'interfaccia finché non viene selezionato un tavolo
+    mainContainer.style.pointerEvents = 'none';
+    mainContainer.style.opacity = '0.5';
+    
+    // 2. Carica il menu
+    loadMenu(); 
+    
+    // 3. Popola i tavoli (passiamo l'elemento DOM locale)
+    populateTableSelect(tableSelect); 
+
+    // 4. Aggiunge l'event listener per l'invio ordine
+    sendOrderBtn?.addEventListener('click', () => sendOrder(user));
+
+    // 5. Aggiunge l'event listener per il logout
+    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+    
+    // 6. Stato iniziale del carrello
+    renderCart();
+}
+
+// Funzione principale che attende il caricamento completo della pagina
+document.addEventListener('DOMContentLoaded', () => {
+    // Gestione della pagina di LOGIN
+    if (window.location.pathname.endsWith('staff-login.html')) {
+        document.getElementById('login-btn')?.addEventListener('click', handleStaffLogin);
+    }
+    
+    // Gestione della pagina di ORDINAZIONE STAFF
+    if (window.location.pathname.endsWith('staff-menu.html')) {
+        
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                initializeStaffApp(user);
+            }
+        });
+    }
+});
