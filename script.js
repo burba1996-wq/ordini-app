@@ -72,10 +72,63 @@ function renderCart() {
     totalPriceSpan.textContent = total.toFixed(2);
 }
 
-// Visualizza il menu nell'interfaccia HTML
-function renderMenu(items) {
-    menuContainer.innerHTML = '<h2>Scegli dal Menu</h2>'; // Pulisce e aggiunge titolo
-    
+// NUOVA FUNZIONE: Raggruppa gli articoli per categoria
+function groupItemsByCategory(items) {
+    return items.reduce((acc, item) => {
+        const category = item.category || 'Altro'; // Usa 'Altro' se la categoria è mancante
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {});
+} 
+// FUNZIONE MODIFICATA: Visualizza il menu raggruppato
+function renderMenu(groupedItems) {
+    menuContainer.innerHTML = ''; // Pulisce il container
+
+    // Ottieni le categorie in ordine alfabetico (opzionale)
+    const sortedCategories = Object.keys(groupedItems).sort();
+
+    sortedCategories.forEach(category => {
+        const categorySection = document.createElement('section');
+        categorySection.id = `category-${category.replace(/\s/g, '_')}`; // ID pulito
+        categorySection.innerHTML = `<h2>${category}</h2>`;
+        
+        const itemsListDiv = document.createElement('div');
+        itemsListDiv.className = 'category-items'; 
+        // Aggiungiamo uno stile per layout a griglia qui
+
+        groupedItems[category].forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'menu-item';
+            div.innerHTML = `
+                <div>
+                    <strong>${item.name}</strong><br>
+                    <span>€${item.price.toFixed(2)}</span>
+                </div>
+                <button data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                    Aggiungi
+                </button>
+            `;
+            
+            // Aggiungi l'evento al pulsante (come prima)
+            const btn = div.querySelector('button');
+            btn.addEventListener('click', () => {
+                addToCart({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price
+                });
+            });
+
+            itemsListDiv.appendChild(div);
+        });
+        
+        categorySection.appendChild(itemsListDiv);
+        menuContainer.appendChild(categorySection);
+    });
+}
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'menu-item';
@@ -104,17 +157,20 @@ function renderMenu(items) {
     });
 }
 
-// Legge il menu da Firestore
+// FUNZIONE MODIFICATA: Legge il menu da Firestore
 async function fetchMenu() {
     try {
         const snapshot = await db.collection('menu').get();
         const menuItems = snapshot.docs.map(doc => ({
-            id: doc.id, // ID del documento (es. 'caffe')
-            ...doc.data() // Dati del documento (name, price, category)
+            id: doc.id,
+            ...doc.data()
         }));
         
-        console.log("Menu caricato:", menuItems);
-        renderMenu(menuItems);
+        // NUOVO PASSO: Raggruppa gli articoli
+        const groupedItems = groupItemsByCategory(menuItems);
+        
+        console.log("Menu caricato e raggruppato:", groupedItems);
+        renderMenu(groupedItems); // Passa gli articoli raggruppati
 
     } catch (error) {
         console.error("Errore nel caricamento del menu: ", error);
