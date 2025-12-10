@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff | Presa Ordini</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <header>
+        <h1>Presa Ordini Staff</h1>
+        <div style="margin-bottom: 15px;">
+            <label for="table-select" style="font-weight: bold; color: #343a40;">Seleziona Tavolo:</label>
+            <select id="table-select" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc; min-width: 150px;">
+                <option value="" disabled selected>-- Scegli Tavolo --</option>
+            </select>
+        </div>
+        
+        <p>Tavolo Attuale: <span id="table-id" style="color: #dc3545; font-size: 1.2em;">NON SELEZIONATO</span></p>
+        
+        <button id="logout-btn" style="background-color: #343a40; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; position: absolute; top: 10px; right: 10px;">Logout</button>
+        
+        <nav id="quick-links">
+             </nav>
+    </header>
+
+    <main id="menu-container" style="pointer-events: none; opacity: 0.5;">
+        <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
+        </main>
+
+    <section id="cart-container">
+        <div id="cart-inner">
+            <h2>Riepilogo Ordine (Tavolo <span id="cart-table-display">...</span>)</h2>
+            <ul id="cart-list">
+                </ul>
+            <p>Totale: € <span id="total-price">0.00</span></p>
+            <button id="send-order-btn" disabled>Invia Ordine</button>
+        </div>
+    </section>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script src="staff-script.js"></script>
+</body>
+</html>
