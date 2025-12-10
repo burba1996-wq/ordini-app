@@ -11,16 +11,12 @@
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombreggiatura più morbida */
     --delete-color: #dc3545; /* Rosso per eliminare */
     
-    /* Variabile per l'altezza totale di header + nav */
-    --header-height: 110px; 
+    /* Variabile per l'altezza approssimativa dell'header principale dello STAFF */
+    --staff-header-content-height: 90px;
 }
 
-/* Importa un font moderno se non è già nel tuo HTML (ad esempio via Google Fonts) */
-/* Se usi Google Fonts, aggiungi questo link nel tuo <head>: 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
-*/
 body {
-    font-family: 'Roboto', Arial, sans-serif; /* Font più moderno */
+    font-family: 'Roboto', Arial, sans-serif;
     background-color: var(--bg-light);
     color: var(--text-dark);
     line-height: 1.6;
@@ -37,11 +33,11 @@ a {
 /* 2. Header & Navigazione (Fissi e Compatti) - AGGIORNATO PER STAFF E CLIENTE */
 /* ========================================================= */
 .menu-header {
-    background-color: var(--card-bg); /* Sfondo Header chiaro */
-    color: var(--text-dark); /* Testo Header scuro */
-    padding: 10px 0; /* Ridotto il padding per renderlo più basso */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Ombra leggera */
-    position: fixed; /* Fissa in alto */
+    background-color: var(--card-bg); 
+    color: var(--text-dark); 
+    padding: 0; /* Il padding interno lo gestiamo in .header-content */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); 
+    position: fixed; 
     top: 0;
     left: 0;
     width: 100%;
@@ -51,22 +47,54 @@ a {
 .header-content {
     max-width: 900px;
     margin: 0 auto;
-    padding: 0 20px;
-    
-    /* Utilizzato per posizionare gli elementi (Titolo, Icona Carrello/Logout) */
+    padding: 10px 20px; /* Padding interno, crea l'altezza */
     display: flex; 
     justify-content: space-between; 
     align-items: center;
-    /* Il contenuto dell'header dello staff è più complesso e potrebbe non centrare */
-    text-align: left; 
+    /* Aggiunto per permettere al layout Staff di impilare gli elementi (vedi staff-menu.html) */
+    flex-wrap: wrap; 
 }
 
+/* Stile base per il Titolo */
 .menu-header h1 {
-    font-size: 1.5em; /* Titolo più piccolo e compatto */
+    font-size: 1.5em; 
     font-weight: 700;
     color: var(--primary-color);
-    margin: 0; /* Rimuovi margini predefiniti */
+    margin: 0;
 }
+
+/* 🟢 NUOVO: Stile per la riga principale Titolo + Logout/Cart */
+.header-main-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 🟢 NUOVO: Stile per il blocco Controlli Tavolo Staff */
+.header-table-controls {
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: left;
+}
+
+/* 🟢 NUOVO: Stili per il pulsante Logout/Generico Staff */
+.simple-btn {
+    background: none;
+    border: 1px solid var(--text-dark);
+    color: var(--text-dark);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+.simple-btn:hover {
+    background-color: var(--bg-light);
+}
+
 
 /* NUOVI STILI PER IL CARRELLO NELL'HEADER (MENU CLIENTI) */
 #header-cart-btn {
@@ -79,11 +107,9 @@ a {
     padding: 5px;
     transition: color 0.2s;
 }
-
 #header-cart-btn:hover {
     color: var(--primary-color);
 }
-
 #header-cart-btn .badge {
     position: absolute;
     top: -5px;
@@ -102,34 +128,41 @@ a {
     display: flex;
     overflow-x: auto; 
     white-space: nowrap;
-    padding: 10px 0;
-    background-color: var(--card-bg); /* Navigazione Chiara */
+    padding: 10px 20px; /* Aggiunto padding orizzontale */
+    background-color: var(--card-bg); 
     border-bottom: 1px solid #eee;
+    width: 100%;
     
-    /* Blocco la nav subito sotto l'header principale */
     position: sticky;
-    /* AGGIUSTAMENTO PER STAFF: Diamo un valore più alto per coprire l'header più complesso */
-    top: 100px; 
+    /* CORREZIONE CRITICA: Uso la variabile d'altezza per posizionare la sticky bar 
+       subito sotto il contenuto principale dell'header staff (staff-menu.html) */
+    top: var(--staff-header-content-height); 
     z-index: 900;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+/* Nasconde la scrollbar orizzontale su Webkit */
+.category-nav::-webkit-scrollbar {
+    display: none; 
 }
 
 .category-btn {
     display: inline-block;
-    padding: 8px 18px; /* Più imbottitura orizzontale */
+    padding: 8px 18px; 
     margin: 0 5px;
-    border-radius: 25px; /* Bordi più arrotondati (Pill shape) */
-    background-color: var(--bg-light); /* Sfondo bottone grigio chiaro */
+    border: 1px solid #ccc; /* Aggiungo un bordo per visibilità */
+    border-radius: 25px; 
+    background-color: var(--bg-light); 
     color: var(--text-dark);
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
     flex-shrink: 0; 
 }
 
 .category-btn:hover, .category-btn.active {
-    background-color: var(--primary-color); /* Blu acceso quando attivo */
+    background-color: var(--primary-color); 
     color: white;
+    border-color: var(--primary-color); /* Rimuovi il bordo grigio quando attivo */
 }
 
 /* ========================================================= */
@@ -137,7 +170,7 @@ a {
 /* ========================================================= */
 #menu-container {
     max-width: 900px;
-    /* AGGIUSTAMENTO PER STAFF: Compensa l'header fisso staff + nav di categoria */
+    /* CORREZIONE CRITICA: Compensa l'altezza totale dell'header (circa 90px) + la nav sticky (circa 50px) + un margine */
     padding-top: 150px; 
     margin: 0 auto;
     padding-left: 20px;
@@ -152,19 +185,8 @@ a {
     margin-bottom: 15px;
 }
 
+/* Stile per l'articolo del menu (usato per l'ordinazione client) */
 .menu-item-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--card-bg);
-    padding: 18px; /* Più spaziatura interna */
-    margin-bottom: 12px;
-    border-radius: 12px; /* Bordi più arrotondati */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* --- STILI AGGIUNTIVI PER CARD MENU STAFF (se necessario) --- */
-.menu-item { /* Usato nello staff-script per la card generica */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -175,11 +197,127 @@ a {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* Stile per l'articolo del menu (usato per l'ordinazione staff) */
+.menu-item { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 18px; 
+    margin-bottom: 12px;
+    border-radius: 12px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.menu-item strong, .menu-item-card strong {
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.menu-item span, .menu-item-card span {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-left: 15px;
+}
+
+/* Pulsante Aggiungi (Add to Cart) */
+.add-to-cart-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #1e7e34; /* Verde scuro al passaggio */
+}
 
 /* ========================================================== */
-/* 4. BARRA FISSA CARRELLO (Cliccabile e COMPATTATA) */
+/* 4. BARRA FISSA CARRELLO & SEZIONE CARRELLO STAFF */
 /* ========================================================== */
 
+/* Sezione Carrello Staff (staff-menu.html) */
+#cart-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300px;
+    background-color: #f8f9fa; /* Sfondo carrello staff */
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 999;
+    
+    /* Compensazione per l'header fisso */
+    padding-top: 150px; 
+}
+
+#cart-inner h2 {
+    color: var(--primary-color);
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+#cart-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.staff-cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dotted #ccc;
+    font-size: 0.95em;
+}
+
+.staff-cart-controls .cart-btn {
+    background: none;
+    border: 1px solid var(--text-dark);
+    color: var(--text-dark);
+    padding: 2px 7px;
+    margin-left: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.staff-cart-controls .cart-remove {
+    border-color: var(--delete-color);
+    color: var(--delete-color);
+}
+
+#send-order-btn {
+    width: 100%;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+
+#send-order-btn:hover:not(:disabled) {
+    background-color: #1e7e34;
+}
+
+#send-order-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+
+/* BARRA FISSA CARRELLO (menu.html - client) */
 #cart-fixed-bar {
     position: fixed;
     bottom: 0; 
@@ -188,9 +326,8 @@ a {
     background-color: var(--secondary-color); 
     z-index: 1000;
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
-    padding: 10px 15px; /* Compattato per altezza ridotta */
+    padding: 10px 15px; 
     text-align: center;
-    /* pointer-events: none; (Assicurati che sia rimosso in staff/client CSS se vuoi il click) */
 }
 
 #toggle-cart-btn {
@@ -202,13 +339,11 @@ a {
     font-weight: 700;
     padding: 0;
     display: flex;
-    /* CORREZIONE: Centra gli elementi (non space-between) */
     justify-content: center; 
     align-items: center;
     cursor: pointer; 
 }
 
-/* Spaziatura tra badge/icona e totale */
 #cart-fixed-bar #cart-fixed-total {
     margin-left: 10px;
 }
@@ -219,11 +354,12 @@ a {
 
 /* Badge (Conteggio Articoli) */
 .badge {
-    background-color: var(--delete-color); /* Rosso per l'attenzione */
+    background-color: var(--delete-color); 
     color: white;
     border-radius: 50%;
     padding: 3px 8px;
     font-size: 0.8rem;
     font-weight: 700;
     margin-left: 5px;
+    line-height: 1;
 }
