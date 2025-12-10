@@ -12,7 +12,6 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-/* ---------------- CONFIG FIREBASE ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
   authDomain: "menu-6630f.firebaseapp.com",
@@ -25,27 +24,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ---------------- RICONOSCIMENTO PAGINA ---------------- */
 if (location.pathname.includes("staff.html")) {
   initStaff();
 } else {
   initClient();
 }
 
-/* ---------------- CLIENT PAGE ---------------- */
 function initClient() {
-  // Legge numero tavolo dal QR
+  
   const params = new URLSearchParams(window.location.search);
   const tableFromUrl = params.get("table") || "Sconosciuto";
 
-  // Campo nascosto per tavolo
+  
   const tableInput = document.createElement("input");
   tableInput.type = "hidden";
   tableInput.id = "table";
   tableInput.value = tableFromUrl;
   document.body.appendChild(tableInput);
 
-  // Form ordine cliente
   const form = document.createElement("form");
   form.id = "orderForm";
   form.innerHTML = `
@@ -65,7 +61,6 @@ function initClient() {
   `;
   document.body.appendChild(form);
 
-  // Invio ordine
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const dish = document.getElementById("dish").value;
@@ -93,7 +88,6 @@ function initClient() {
   });
 }
 
-/* ---------------- STAFF PAGE ---------------- */
 function initStaff() {
   const ordersContainer = document.getElementById("ordersContainer");
   const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
@@ -105,7 +99,6 @@ function initStaff() {
       const data = docSnap.data();
       const id = docSnap.id;
 
-      // Salta documenti senza dati essenziali
       if (!data.table || !data.dish) return;
 
       const div = document.createElement("div");
@@ -122,7 +115,6 @@ function initStaff() {
       ordersContainer.appendChild(div);
     });
 
-    // Aggiorna lo stato degli ordini
     document.querySelectorAll(".btnStatus").forEach(btn => {
       btn.onclick = async () => {
         const id = btn.getAttribute("data-id");
@@ -137,5 +129,6 @@ function initStaff() {
     });
   });
 }
+
 
 
