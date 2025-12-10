@@ -1,12 +1,4 @@
-Assolutamente! Creiamo un file style.css completamente nuovo e più moderno, ottimizzato per un'applicazione mobile (visto che verrà usata tramite QR code) e che implementi un design chiaro per le categorie.
-
-Sostituisci l'intero contenuto del tuo file style.css con il codice qui sotto:
-
-💅 Nuovo file style.css (Design Professionale)
-CSS
-
-/* --- 1. RESET E FONDAMENTALI --- */
-* {
+ {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
