@@ -247,7 +247,7 @@ function updateCartQuantity(id, change) {
 }
 
 /**
- * Renderizza la lista del carrello e aggiorna il totale.
+ * Renderizza la lista del carrello e aggiorna il totale (OTTIZZATO PER MOBILE).
  */
 function renderCart() {
     // Utilizza i riferimenti globali esistenti
@@ -258,7 +258,7 @@ function renderCart() {
     const cartItemsArray = Object.values(cartItems);
 
     if (cartItemsArray.length === 0) {
-        cartList.innerHTML = '<li>Il carrello è vuoto.</li>';
+        cartList.innerHTML = '<li class="empty-cart-message">Il carrello è vuoto.</li>';
         sendOrderBtn.disabled = true;
     } else {
         cartItemsArray.forEach(item => {
@@ -266,13 +266,21 @@ function renderCart() {
             total += itemTotal;
 
             const listItem = document.createElement('li');
+            listItem.className = 'staff-cart-item-compact'; // Classe per CSS compatto
+            
+            // NUOVA STRUTTURA: tutto su una riga e usa icone (richiede Font Awesome)
             listItem.innerHTML = `
-                ${item.quantity} x ${item.name} 
-                (€ ${itemTotal.toFixed(2)})
-                <div style="float: right;">
-                    <button class="cart-btn" onclick="updateCartQuantity('${item.id}', 1)">+</button>
-                    <button class="cart-btn" onclick="updateCartQuantity('${item.id}', -1)">-</button>
-                    <button class="cart-btn cart-remove" onclick="updateCartQuantity('${item.id}', -${item.quantity})">×</button>
+                <div class="item-quantity-controls">
+                    <button class="cart-btn compact-btn" onclick="updateCartQuantity('${item.id}', -1)"><i class="fas fa-minus"></i></button>
+                    <span class="quantity-display">${item.quantity}</span>
+                    <button class="cart-btn compact-btn" onclick="updateCartQuantity('${item.id}', 1)"><i class="fas fa-plus"></i></button>
+                </div>
+                
+                <span class="item-name-compact">${item.name}</span>
+                
+                <div class="item-price-and-remove">
+                    <span class="item-total-price">€ ${itemTotal.toFixed(2)}</span>
+                    <button class="cart-btn cart-remove compact-btn" onclick="updateCartQuantity('${item.id}', -${item.quantity})"><i class="fas fa-trash-alt"></i></button>
                 </div>
             `;
             cartList.appendChild(listItem);
