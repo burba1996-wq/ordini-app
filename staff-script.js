@@ -112,7 +112,7 @@ function populateTableSelect() {
     if (!tableSelect) return;
 
     // Esempio: numeri di tavolo da 1 a 10
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 40; i++) {
         const option = document.createElement('option');
         option.value = `TAVOLO_${i}`;
         option.textContent = `Tavolo ${i}`;
