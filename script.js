@@ -205,9 +205,9 @@ function groupItemsByCategory(items) {
 }
 
 /**
- * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
- * @param {object} groupedItems - Il menu raggruppato.
- */
+ * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
+ * @param {object} groupedItems - Il menu raggruppato.
+ */
 function renderCategoryNavigation(groupedItems) {
     navQuickLinks.innerHTML = '';
     const sortedCategories = Object.keys(groupedItems).sort();
@@ -223,19 +223,19 @@ function renderCategoryNavigation(groupedItems) {
         // COLLEGA L'EVENTO DI SCROLL
         button.addEventListener('click', () => {
             const target = document.getElementById(cleanId);
-            if (target) 
+            if (target) { 
                 // Scroll fluido alla sezione con un offset
                 window.scrollTo({
                     // target.offsetTop - 100 tiene conto dell'altezza dell'header fisso
                     top: target.offsetTop - 100, 
                     behavior: 'smooth'
                 });
-            });
-        });
-        navQuickLinks.appendChild(button);
-    });
+            } 
+        }); 
+        
+        navQuickLinks.appendChild(button); 
+    }); 
 }
-
 
 /**
  * Visualizza il menu raggruppato in sezioni HTML.
