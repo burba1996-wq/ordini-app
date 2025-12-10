@@ -14,14 +14,13 @@ const firebaseConfig = {
   storageBucket: "menu-6630f.firebasestorage.app",
   messagingSenderId: "250958312970",
   appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
-  measurementId: "G-GTQS2S4GNF"
+ 
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// QUANDO INVII IL FORM
 document.getElementById("orderForm").addEventListener("submit", async (e) => {
-  e.preventDefault(); // blocca il refresh
+  e.preventDefault();
 
   const table = document.getElementById("table").value;
   const dish = document.getElementById("dish").value;
@@ -44,3 +43,4 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
     console.error(error);
   }
 });
+
