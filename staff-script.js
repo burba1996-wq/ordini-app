@@ -112,14 +112,24 @@ function handleLogout() {
 // --- 4. GESTIONE TAVOLI E MENU STAFF ---
 
 /**
- * Popola il dropdown di selezione tavolo e inizializza l'interfaccia al primo tavolo.
- * FIX: Aggiunto dispatchEvent('change') per forzare l'inizializzazione del Tavolo 1.
+ * Popola il dropdown di selezione tavolo.
+ * AGGIORNATO: Inizia con l'opzione "Seleziona Tavolo" e blocca l'interfaccia.
  */
 function populateTableSelect() {
     const tableSelect = document.getElementById('table-select');
     if (!tableSelect) return;
 
-    // Esteso il range da 1 a 40
+    // --- 1. AGGIUNGE L'OPZIONE VUOTA INIZIALE ---
+    tableSelect.innerHTML = ''; // Pulisce il selettore
+    
+    const defaultOption = document.createElement('option');
+    defaultOption.value = ""; // Valore nullo
+    defaultOption.textContent = "-- Seleziona Tavolo --";
+    defaultOption.disabled = true; // Non può essere riselezionata
+    defaultOption.selected = true; // Selezionata all'inizio
+    tableSelect.appendChild(defaultOption);
+
+    // --- 2. POPOLA LE OPZIONI (Tavoli 1-40) ---
     for (let i = 1; i <= 40; i++) { 
         const option = document.createElement('option');
         option.value = `TAVOLO_${i}`;
@@ -127,40 +137,53 @@ function populateTableSelect() {
         tableSelect.appendChild(option);
     }
 
+    // --- 3. GESTIONE DELL'EVENTO DI CAMBIO ---
     tableSelect.addEventListener('change', (e) => {
         const selectedValue = e.target.value;
         
+        if (!selectedValue) {
+            // Logica di blocco (Dovrebbe accadere solo se si manipola il DOM)
+            currentTableId = null;
+            tableIdDisplay.textContent = "NESSUNO";
+            if (cartTableDisplayFull) cartTableDisplayFull.textContent = "NESSUNO";
+            
+            // Blocca il menu e resetta
+            mainContainer.style.pointerEvents = 'none';
+            mainContainer.style.opacity = '0.5';
+            cartItems = {};
+            renderCart();
+            return;
+        }
+
+        // Logica di sblocco
         currentTableId = selectedValue;
         tableIdDisplay.textContent = currentTableId;
-        // Aggiorna il display del tavolo nel riepilogo completo
         if (cartTableDisplayFull) cartTableDisplayFull.textContent = currentTableId; 
         
         // Sblocca l'interfaccia menu
         mainContainer.style.pointerEvents = 'auto';
         mainContainer.style.opacity = '1';
         
+        // Rimuovi il messaggio di stato di caricamento/istruzione
         const loadingState = mainContainer.querySelector('.loading-state');
         if (loadingState) {
-             // Nasconde l'intero blocco di stato di caricamento/istruzione
              loadingState.style.display = 'none'; 
         }
         
-        // Reset carrello quando si cambia tavolo
+        // Reset carrello (perché stiamo iniziando un nuovo ordine)
         cartItems = {};
         renderCart();
         
-        // Ricarica il menu (che ora genera anche i link categoria)
         renderMenu(); 
     });
-    
-    // *** FIX PER IL TAVOLO 1 NON FUNZIONANTE AL CARICAMENTO ***
-    if (tableSelect.options.length > 0) {
-        // Forza il valore a TAVOLO_1 (che è il default HTML)
-        tableSelect.value = 'TAVOLO_1'; 
-        // Simula l'evento 'change' per attivare il listener e inizializzare currentTableId, UI e carrello.
-        const event = new Event('change');
-        tableSelect.dispatchEvent(event);
-    }
+
+    // --- 4. STATO INIZIALE AL CARICAMENTO ---
+    currentTableId = null; 
+    tableIdDisplay.textContent = "NESSUNO";
+    // Blocca l'interfaccia all'avvio
+    mainContainer.style.pointerEvents = 'none';
+    mainContainer.style.opacity = '0.5';
+    // NON C'È PIÙ L'EVENTO DI FORZATURA
 }
 
 /**
