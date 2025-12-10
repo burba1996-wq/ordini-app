@@ -392,13 +392,29 @@ document.addEventListener('DOMContentLoaded', () => {
     attachCartEventListeners(); 
 
     // 6. Listener per la Modale Carrello 
-    toggleCartBtn.addEventListener('click', () => toggleCartModal(true));
+    // AGGIORNATO: Ora il pulsante chiude il modale, ma l'apertura cambia funzione.
+    // toggleCartBtn NON apre più la modale
     closeCartBtn.addEventListener('click', () => toggleCartModal(false));
     
     // Chiudi il modale cliccando fuori
     window.addEventListener('click', (event) => {
         if (event.target === cartModal) {
             toggleCartModal(false);
+        }
+    });
+
+    // NUOVA FUNZIONE: SCORRI AL PUNTO DI ANCORAGGIO ORDINE
+    toggleCartBtn.addEventListener('click', () => {
+        const anchor = document.getElementById('order-anchor-point');
+        if (anchor) {
+            window.scrollTo({
+                top: anchor.offsetTop - 50, // -50 per lasciare spazio visivo
+                behavior: 'smooth'
+            });
+            // Opzionale: Apri comunque il modale se l'utente è alla fine della pagina
+            // if (anchor.getBoundingClientRect().top < 200) {
+            //     toggleCartModal(true);
+            // }
         }
     });
 });
