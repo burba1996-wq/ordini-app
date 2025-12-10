@@ -87,6 +87,8 @@ auth.onAuthStateChanged(user => {
 
     if (user) {
         // Utente autenticato
+        // NOTA: La validazione del Custom Claim 'role: admin' dovrebbe avvenire qui.
+        // Se non hai implementato i Custom Claims, questo reindirizzamento è sufficiente per ora.
         if (isAdminLoginPage) {
             window.location.href = 'admin.html'; // Reindirizza alla dashboard
         } else if (isAdminPage) {
@@ -112,14 +114,21 @@ let unsubscribeOrders = null;
 /**
  * Funzione di utilità per formattare il Timestamp in ora leggibile.
  * @param {firebase.firestore.Timestamp} timestamp
+ * @param {boolean} includeDate - Se includere la data (utile per gli ordini completati)
  * @returns {string} L'ora formattata.
  */
-function formatTimestampToTime(timestamp) {
+function formatTimestampToTime(timestamp, includeDate = false) {
     if (!timestamp) return 'Ora Sconosciuta';
     const date = timestamp.toDate();
-    // Migliorato il formato per chiarezza negli ordini completati
-    return date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}) + ' ' + date.toLocaleDateString('it-IT');
+    let options = { hour: '2-digit', minute: '2-digit' };
+    
+    if (includeDate) {
+        options = { ...options, day: '2-digit', month: '2-digit', year: 'numeric' };
+    }
+    
+    return date.toLocaleTimeString('it-IT', options);
 }
+
 
 /**
  * Funzione principale che avvia la dashboard dopo il login.
@@ -182,9 +191,7 @@ function listenForOrdersByStatus(status) {
     
     ordersContainer.innerHTML = '<h2 style="text-align: center;">Caricamento Ordini...</h2>';
 
-    // Determina l'ordinamento: pending (dal più vecchio), completed (dal più nuovo)
-    // Se ordiniamo per 'timestamp' e poi per 'status', potremmo aver bisogno di un altro indice composito!
-    // Per ora, ordiniamo solo per timestamp.
+    // Determina l'ordinamento: pending (dal più vecchio, asc), completed (dal più nuovo, desc)
     const sortDirection = (status === 'pending') ? 'asc' : 'desc';
 
     // Query dinamica
@@ -211,6 +218,7 @@ function listenForOrdersByStatus(status) {
         });
     }, error => {
         console.error("Errore nel ricevere gli ordini:", error);
+        // NOTA: Se l'errore è "Permission Denied", controllare le Regole di Sicurezza di Firestore!
         ordersContainer.innerHTML = '<p class="error-message">Errore nel caricamento degli ordini. Controlla la console.</p>';
     });
 }
@@ -224,31 +232,29 @@ function renderOrderCard(order, orderId) {
     const card = document.createElement('div');
     card.className = `order-card ${order.status}`; 
     
-    let timeLabel = 'Ora Ordine';
-    let timeValue = formatTimestampToTime(order.timestamp);
-
-    if (order.status === 'completed' && order.completionTime) {
-        // Per gli ordini completati, mostriamo l'ora di completamento
-        timeLabel = 'Completato alle';
-        timeValue = formatTimestampToTime(order.completionTime);
-    } 
+    // Formatta l'ora in base allo stato
+    const timeToDisplay = (order.status === 'completed' && order.completionTime)
+        ? formatTimestampToTime(order.completionTime, true) // Include data e ora per storico
+        : formatTimestampToTime(order.timestamp, false); // Solo ora per pending
     
+    // Crea la lista degli articoli
     const itemsHtml = order.items.map(item => 
-        `<li>${item.quantity}x ${item.name} (€${(item.quantity * item.price).toFixed(2)})</li>`
+        `<li>${item.quantity}x ${item.name} <span class="item-price">€${(item.quantity * item.price).toFixed(2)}</span></li>`
     ).join('');
     
-    // Contenuto dinamico del footer
+    // Contenuto dinamico del footer (Pulsante vs Etichetta Completato)
     let footerContent;
     if (order.status === 'pending') {
         footerContent = `<button class="complete-btn" data-id="${orderId}">Completa Ordine</button>`;
     } else {
-        // Mostra solo l'etichetta del tempo senza il pulsante
-        footerContent = `<span class="completed-label">${timeLabel}: ${timeValue}</span>`;
+        footerContent = `<span class="completed-label">Completato alle ${timeToDisplay}</span>`;
     }
 
     card.innerHTML = `
-        <h3>Tavolo: ${order.tableId} <span class="order-time">${timeValue}</span></h3>
-        <p class="order-staff">Preso da: ${order.staffEmail || 'Cliente QR'}</p>
+        <div class="card-header">
+            <h3>Tavolo: ${order.tableId}</h3>
+            <span class="order-time">${timeToDisplay}</span>
+        </div>
         
         <ul class="order-items">${itemsHtml}</ul>
         
@@ -260,9 +266,13 @@ function renderOrderCard(order, orderId) {
 
     // Aggiungi l'event listener solo se l'ordine è in attesa
     if (order.status === 'pending') {
-        card.querySelector('.complete-btn').addEventListener('click', () => {
-            updateOrderStatus(orderId, 'completed');
-        });
+        // Usa il delegation o l'elemento specifico per l'evento
+        const completeButton = card.querySelector('.complete-btn');
+        if (completeButton) {
+             completeButton.addEventListener('click', () => {
+                updateOrderStatus(orderId, 'completed');
+            });
+        }
     }
 
     ordersContainer.appendChild(card);
@@ -275,12 +285,13 @@ async function updateOrderStatus(orderId, newStatus) {
     try {
         await db.collection('orders').doc(orderId).update({
             status: newStatus,
-            completionTime: firebase.firestore.FieldValue.serverTimestamp()
+            // Registra l'ora di completamento solo quando l'ordine viene segnato come completato
+            completionTime: firebase.firestore.FieldValue.serverTimestamp() 
         });
         console.log(`Ordine ${orderId} segnato come ${newStatus}.`);
     } catch (error) {
         console.error("Errore nell'aggiornamento dello stato:", error);
-        alert("Impossibile aggiornare lo stato dell'ordine.");
+        alert("Impossibile aggiornare lo stato dell'ordine. (Controlla le regole di scrittura admin)");
     }
 }
 
