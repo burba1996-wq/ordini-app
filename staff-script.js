@@ -1,3 +1,7 @@
+// ===============================================
+//           STAFF ORDERING SYSTEM SCRIPT
+// ===============================================
+
 // --- 1. CONFIGURAZIONE FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
@@ -18,49 +22,49 @@ const db = firebase.firestore();
 const menuCollection = db.collection('menu');
 const ordersCollection = db.collection('orders');
 
-// Variabili globali di stato
+// --- 2. VARIABILI DI STATO GLOBALI ---
 let menuData = []; 
 let cartItems = {};
 let currentTableId = null; 
 
-// --- 2. Dichiarazioni DOM Globali (Popolate in initializeStaffApp) ---
+// --- 3. RIFERIMENTI DOM (Dichiarati come LET per l'assegnazione successiva) ---
 let mainContainer, cartList, totalPriceSpan, sendOrderBtn, tableIdDisplay, cartTableDisplay, navQuickLinks;
+let tableSelect; // Elemento cruciale per l'errore precedente
 
-
-// --- 3. GESTIONE AUTENTICAZIONE ---
+// ===============================================
+//           LOGICA DI AUTENTICAZIONE
+// ===============================================
 
 /**
- * Reindirizza alla pagina di login se l'utente non è autenticato.
+ * Reindirizza l'utente in base allo stato di autenticazione.
  */
 auth.onAuthStateChanged(user => {
-    if (window.location.pathname.endsWith('staff-menu.html') && !user) {
+    const isStaffMenu = window.location.pathname.endsWith('staff-menu.html');
+    const isStaffLogin = window.location.pathname.endsWith('staff-login.html');
+
+    if (isStaffMenu && !user) {
         window.location.href = 'staff-login.html';
-    }
-    else if (window.location.pathname.endsWith('staff-login.html') && user) {
+    } else if (isStaffLogin && user) {
         window.location.href = 'staff-menu.html';
-    } 
+    }
 });
 
 /**
- * Funzione di Login (Usata su staff-login.html)
+ * Funzione di Login (chiamata dall'HTML su staff-login.html)
  */
 function handleStaffLogin() {
-    const emailInput = document.getElementById('staff-email');
-    const passwordInput = document.getElementById('staff-password');
+    const email = document.getElementById('staff-email')?.value;
+    const password = document.getElementById('staff-password')?.value;
     const loginBtn = document.getElementById('login-btn');
     const errorMessage = document.getElementById('error-message');
 
-    if (!emailInput || !passwordInput || !loginBtn) return; 
+    if (!email || !password || !loginBtn) return;
 
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    
     errorMessage.textContent = '';
     loginBtn.disabled = true;
     loginBtn.textContent = 'Accesso...';
 
     auth.signInWithEmailAndPassword(email, password)
-        .then(() => {})
         .catch(error => {
             console.error("Errore di Login: ", error.message);
             errorMessage.textContent = 'Accesso fallito. Credenziali non valide.';
@@ -72,25 +76,26 @@ function handleStaffLogin() {
 }
 
 /**
- * Funzione di Logout (Usata su staff-menu.html)
+ * Funzione di Logout (chiamata dall'HTML su staff-menu.html)
  */
 function handleLogout() {
-    auth.signOut().then(() => {}).catch(error => {
+    auth.signOut().catch(error => {
         console.error("Errore di Logout: ", error);
         alert("Errore durante il logout. Riprova.");
     });
 }
 
-
-// --- 4. GESTIONE TAVOLI E MENU STAFF ---
+// ===============================================
+//           LOGICA DI GESTIONE ORDINI E TAVOLI
+// ===============================================
 
 /**
- * Popola il dropdown di selezione tavolo e gestisce l'evento di cambio.
+ * Popola il dropdown di selezione tavolo e gestisce l'evento 'change'.
  */
-function populateTableSelect(tableSelect) {
+function populateTableSelect() {
     if (!tableSelect) return;
 
-    // Aggiunge l'opzione iniziale "Seleziona..."
+    // 1. Inizializzazione del dropdown
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
     defaultOption.textContent = 'Seleziona Tavolo...';
@@ -98,62 +103,58 @@ function populateTableSelect(tableSelect) {
     defaultOption.selected = true; 
     tableSelect.appendChild(defaultOption);
     
-    // Tavoli da 1 a 40
     for (let i = 1; i <= 40; i++) {
         const option = document.createElement('option');
         option.value = `TAVOLO_${i}`;
-        option.textContent = `${i}`; // Mostra solo il numero
+        option.textContent = `Tavolo ${i}`; 
         tableSelect.appendChild(option);
     }
 
+    // 2. Gestione dell'evento di selezione (Risoluzione dell'errore displayId)
     tableSelect.addEventListener('change', (e) => {
+        const selectedValue = e.target.value;
         
-        // Se si tenta di selezionare l'opzione vuota
-        if (e.target.value === '') {
+        if (selectedValue === '') {
+            // Caso di selezione predefinita (nessun tavolo)
             currentTableId = null;
-            if (tableIdDisplay) tableIdDisplay.textContent = 'Nessuno';
-            if (cartTableDisplay) cartTableDisplay.textContent = 'Nessuno';
-            
-            // Blocca l'interfaccia se la selezione viene annullata/default
             if (mainContainer) {
                  mainContainer.style.pointerEvents = 'none';
                  mainContainer.style.opacity = '0.5';
             }
+            if (tableIdDisplay) tableIdDisplay.textContent = 'Nessuno';
+            if (cartTableDisplay) cartTableDisplay.textContent = 'Nessuno';
             return;
         }
 
-        currentTableId = e.target.value;
+        currentTableId = selectedValue;
         
-        // ** CORREZIONE: DEFINIZIONE DI displayId **
-        const displayId = currentTableId.replace('TAVOLO_', 'Tavolo ');
+        // La variabile è definita nello scope locale, risolvendo il ReferenceError
+        const displayId = currentTableId.replace('TAVOLO_', 'Tavolo '); 
         
         // Aggiorna i display
         if (tableIdDisplay) tableIdDisplay.textContent = displayId;
         if (cartTableDisplay) cartTableDisplay.textContent = displayId;
         
-        // SBLOCCA L'INTERFACCIA MENU
+        // SBLOCCA L'INTERFACCIA
         if (mainContainer) {
             mainContainer.style.pointerEvents = 'auto';
             mainContainer.style.opacity = '1';
         }
         
-        // Nasconde il messaggio iniziale (se presente)
-        const initialMessage = document.querySelector('.loading-state'); 
-        if (initialMessage) initialMessage.style.display = 'none';
+        // Nasconde il messaggio iniziale
+        document.querySelector('.loading-state')?.style.display = 'none';
 
-        
-        // Reset carrello quando si cambia tavolo
+        // Reset e render del carrello/menu
         cartItems = {};
         renderCart();
         
-        // Ricarica il menu 
         const groupedMenu = groupItemsByCategory(menuData);
         renderMenu(groupedMenu); 
     });
 }
 
 /**
- * Carica il menu da Firestore e lo memorizza.
+ * Carica il menu da Firestore e avvia il rendering iniziale.
  */
 async function loadMenu() {
     try {
@@ -167,12 +168,11 @@ async function loadMenu() {
         const groupedMenu = groupItemsByCategory(menuData);
         
         if(navQuickLinks) renderCategoryNavigation(groupedMenu); 
-        
         renderMenu(groupedMenu); 
 
     } catch (error) {
         console.error("Errore nel caricamento del menu: ", error);
-        if (mainContainer) mainContainer.innerHTML = `<p style="color: red;">Impossibile caricare il menu. Riprova più tardi.</p>`;
+        if (mainContainer) mainContainer.innerHTML = `<p style="color: red; padding: 20px;">Impossibile caricare il menu. Controlla la connessione.</p>`;
     }
 }
 
@@ -190,9 +190,8 @@ function groupItemsByCategory(items) {
     }, {});
 }
 
-
 /**
- * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
+ * Genera i pulsanti di navigazione rapida (Quick Links).
  */
 function renderCategoryNavigation(groupedItems) {
     if (!navQuickLinks) return;
@@ -211,7 +210,7 @@ function renderCategoryNavigation(groupedItems) {
             const target = document.getElementById(cleanId);
             if (target) { 
                 window.scrollTo({
-                    top: target.offsetTop - 120,
+                    top: target.offsetTop - 120, // Offset per l'intestazione fissa
                     behavior: 'smooth'
                 });
             } 
@@ -221,12 +220,11 @@ function renderCategoryNavigation(groupedItems) {
     }); 
 }
 
-
 /**
- * Renderizza l'intero menu in base ai dati memorizzati.
+ * Renderizza il menu completo e aggiunge gli ascoltatori per "Aggiungi al Carrello".
  */
 function renderMenu(groupedMenu) {
-    if (!mainContainer || Object.keys(groupedMenu).length === 0) return;
+    if (!mainContainer) return;
 
     mainContainer.innerHTML = ''; 
     
@@ -261,20 +259,20 @@ function renderMenu(groupedMenu) {
         mainContainer.appendChild(section);
     });
 
-    // 3. Aggiunge gli ascoltatori di eventi
+    // Aggiunge gli ascoltatori per i pulsanti "Aggiungi"
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', handleAddToCart);
     });
 }
 
-// --- 5. GESTIONE CARRELLO E ORDINE (Logica Staff) ---
+// --- 5. GESTIONE CARRELLO (CART) ---
 
 /**
  * Aggiunge un articolo al carrello.
  */
 function handleAddToCart(event) {
     if (!currentTableId) {
-        alert("Per favore, seleziona un tavolo prima di aggiungere articoli.");
+        alert("Seleziona prima un tavolo.");
         return;
     }
     
@@ -375,8 +373,9 @@ async function sendOrder(staffUser) {
 
     try {
         await ordersCollection.add(orderData);
-        alert(`Ordine inviato con successo per ${currentTableId}!`);
+        alert(`Ordine inviato con successo per ${currentTableId.replace('TAVOLO_', 'Tavolo ')}!`);
         
+        // Reset del carrello dopo l'invio
         cartItems = {};
         renderCart();
 
@@ -392,14 +391,16 @@ async function sendOrder(staffUser) {
 }
 
 
-// --- 6. INIZIALIZZAZIONE (Logica di Avvio) ---
+// ===============================================
+//           INIZIALIZZAZIONE DELL'APP
+// ===============================================
 
 /**
- * Avvia l'applicazione Staff Order-Taking.
+ * Avvia l'applicazione Staff Order-Taking DOPO che l'utente è autenticato e il DOM è pronto.
  */
 function initializeStaffApp(user) {
     
-    // Assegna le variabili DOM globali qui, dove siamo sicuri che il DOM è pronto.
+    // Assegna i riferimenti DOM (sicuro perché viene eseguita dopo DOMContentLoaded)
     window.mainContainer = document.getElementById('menu-container');
     window.cartList = document.getElementById('cart-list');
     window.totalPriceSpan = document.getElementById('total-price');
@@ -407,48 +408,47 @@ function initializeStaffApp(user) {
     window.tableIdDisplay = document.getElementById('table-id');
     window.cartTableDisplay = document.getElementById('cart-table-display');
     window.navQuickLinks = document.getElementById('quick-links');
-
-    const tableSelect = document.getElementById('table-select');
+    window.tableSelect = document.getElementById('table-select'); // Il selettore del tavolo!
     
     if (!mainContainer || !tableSelect) {
-        console.error("ERRORE CRITICO: Elementi DOM essenziali (menu-container o table-select) mancanti nell'HTML.");
+        console.error("ERRORE CRITICO: Elementi DOM essenziali mancanti nell'HTML. (Verifica menu-container e table-select).");
         return;
     }
 
-    // 1. Blocca inizialmente l'interfaccia finché non viene selezionato un tavolo
+    // 1. Blocca l'interfaccia (fino alla selezione del tavolo)
     mainContainer.style.pointerEvents = 'none';
     mainContainer.style.opacity = '0.5';
     
-    // 2. Carica il menu
+    // 2. Carica il menu (asincrono)
     loadMenu(); 
     
-    // 3. Popola i tavoli (passiamo l'elemento DOM locale)
-    populateTableSelect(tableSelect); 
+    // 3. Popola e configura i tavoli
+    populateTableSelect(); 
 
-    // 4. Aggiunge l'event listener per l'invio ordine
+    // 4. Aggiunge i listener globali
     sendOrderBtn?.addEventListener('click', () => sendOrder(user));
-
-    // 5. Aggiunge l'event listener per il logout
     document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
     
-    // 6. Stato iniziale del carrello
+    // 5. Stato iniziale del carrello
     renderCart();
 }
 
-// Funzione principale che attende il caricamento completo della pagina
+/**
+ * Gestore principale che attende il caricamento della pagina (DOM pronto).
+ */
 document.addEventListener('DOMContentLoaded', () => {
-    // Gestione della pagina di LOGIN
+    // Gestione del login
     if (window.location.pathname.endsWith('staff-login.html')) {
         document.getElementById('login-btn')?.addEventListener('click', handleStaffLogin);
     }
     
-    // Gestione della pagina di ORDINAZIONE STAFF
+    // Gestione dell'app staff
     if (window.location.pathname.endsWith('staff-menu.html')) {
-        
         auth.onAuthStateChanged(user => {
             if (user) {
                 initializeStaffApp(user);
             }
+            // Il reindirizzamento è gestito da auth.onAuthStateChanged sopra.
         });
     }
 });
