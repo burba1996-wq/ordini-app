@@ -6,7 +6,7 @@ const firebaseConfig = {
     storageBucket: "menu-6630f.firebasestorage.app",
     messagingSenderId: "250958312970",
     appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
-    measurementId: "G-GTQS2S4GNF"
+    measurementId: "G-GTQS2SGNF"
 };
 
 // Inizializzazione Firebase
@@ -172,8 +172,11 @@ function populateTableSelect() {
         
         // Reset carrello (perché stiamo iniziando un nuovo ordine)
         cartItems = {};
-        renderCart();
+        // Se l'input note esiste, lo pulisce anche al cambio tavolo
+        const orderNotesInput = document.getElementById('order-notes');
+        if (orderNotesInput) orderNotesInput.value = '';
         
+        renderCart();
         renderMenu(); 
     });
 
@@ -395,8 +398,12 @@ function renderCart() {
 
 /**
  * Invia l'ordine a Firestore.
+ * AGGIORNATO: Include le note dell'ordine.
  */
 async function sendOrder(staffUser) {
+    // Recupera l'input delle note
+    const orderNotesInput = document.getElementById('order-notes');
+    
     // Utilizza i riferimenti globali esistenti
     if (Object.keys(cartItems).length === 0 || !currentTableId || !sendOrderBtn || !totalPriceSpanFull) {
         alert("Carrello vuoto o nessun tavolo selezionato.");
@@ -405,6 +412,9 @@ async function sendOrder(staffUser) {
 
     sendOrderBtn.disabled = true;
     sendOrderBtn.textContent = 'Invio...';
+
+    // 1. Recupera la nota
+    const orderNotes = orderNotesInput ? orderNotesInput.value.trim() : '';
 
     // Usiamo totalPriceSpanFull per il totale
     const total = parseFloat(totalPriceSpanFull.textContent); 
@@ -417,12 +427,14 @@ async function sendOrder(staffUser) {
 
     const orderData = {
         tableId: currentTableId,
-        staffId: staffUser.uid, // Associa l'ordine allo staff che l'ha preso
+        staffId: staffUser.uid, 
         staffEmail: staffUser.email,
         items: orderDetails,
         total: total,
         status: 'pending', 
-        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        // 2. AGGIUNGE LA NOTA AI DATI DELL'ORDINE
+        notes: orderNotes || '' // Assicura che sia sempre presente, anche se vuota
     };
 
     try {
@@ -436,6 +448,8 @@ async function sendOrder(staffUser) {
         // Reset Carrello
         cartItems = {};
         renderCart();
+        // 3. Pulisce il campo note dopo l'invio
+        if (orderNotesInput) orderNotesInput.value = ''; 
 
     } catch (error) {
         console.error("Errore nell'invio dell'ordine: ", error);
