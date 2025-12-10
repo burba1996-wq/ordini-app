@@ -1,3 +1,15 @@
+/* --- 1. VARIABILI, RESET E FONDAMENTALI --- */
+:root {
+    /* Colori principali */
+    --primary-color: #007bff; /* Blu per intestazioni e bordi */
+    --secondary-color: #28a745; /* Verde per Aggiungi al carrello */
+    --accent-color: #ffc107; /* Giallo/Arancio per totale e interattività carrello */
+    --dark-bg: #343a40; /* Sfondo scuro per il carrello fisso */
+    --light-bg: #f7f9fc; /* Sfondo chiaro del body */
+    --white: #ffffff;
+    --red: #dc3545; /* Rosso per pulsanti Rimuovi/Invia */
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,43 +18,71 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7f9fc; /* Sfondo chiaro e moderno */
+    background-color: var(--light-bg);
     color: #333;
     line-height: 1.6;
     padding: 0;
     margin: 0;
+    /* Aggiunto padding bottom per non far coprire i contenuti dal carrello fisso */
+    padding-bottom: 250px; 
 }
 
-main, header, #cart {
+/* Centralizzazione del layout principale */
+main, header, #cart-container { /* NOTA: Ho rinominato #cart in #cart-container per chiarezza logica nel CSS */
     max-width: 800px;
     margin: 0 auto;
-    padding: 15px;
+    /* Rimosso padding dal main, lo usano le sezioni interne */
 }
 
 h1, h2 {
-    color: #007bff;
+    color: var(--primary-color);
     margin-bottom: 10px;
 }
 
-/* --- 2. HEADER E TAVOLO --- */
+/* --- 2. HEADER E BARRA DI NAVIGAZIONE FISSA --- */
 header {
-    background-color: #ffffff;
+    background-color: var(--white);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px 15px;
+    padding: 20px 15px 10px 15px; /* Meno padding in basso per la nav */
     text-align: center;
-    position: sticky; /* Rende l'header fisso in alto */
+    position: sticky; 
     top: 0;
-    z-index: 10; /* Assicura che sia sopra gli altri elementi */
+    z-index: 20; /* Priorità alta */
 }
 
 #table-id {
-    color: #28a745; /* Colore verde per l'ID del tavolo */
+    color: var(--secondary-color);
     font-size: 1.2em;
     font-weight: bold;
 }
 
-/* --- 3. SEZIONE MENU E CATEGORIE --- */
+/* Container per i link di navigazione rapida (Futuro Step) */
+#quick-links { 
+    background-color: #e9ecef;
+    padding: 10px 15px;
+    border-top: 1px solid #ccc;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 -15px; /* Estende la barra fino ai margini del container principale */
+}
+#quick-links a {
+    color: #333;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--white);
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+#quick-links a:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
 
+
+/* --- 3. SEZIONE MENU E CATEGORIE --- */
 #menu-container {
     padding: 15px;
 }
@@ -50,175 +90,29 @@ header {
 section {
     margin-bottom: 30px;
     padding: 15px;
-    background-color: #ffffff;
+    background-color: var(--white);
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Ombreggiatura più pronunciata */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 section h2 {
     font-size: 1.5em;
     padding-bottom: 5px;
     margin-top: 0;
-    border-bottom: 3px solid #007bff; /* Linea di divisione categoria */
-    color: #007bff;
+    border-bottom: 3px solid var(--primary-color);
+    color: var(--primary-color);
     margin-bottom: 15px;
 }
 
-/* Griglia per gli articoli all'interno della categoria */
 .category-items {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 15px;
 }
 
-/* Stile del singolo articolo */
 .menu-item {
-    background: #e9f0f9; /* Sfondo leggermente azzurro per gli articoli */
+    background: #e9f0f9; 
     padding: 15px;
     border-radius: 8px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s;
-}
-
-.menu-item:hover {
-    transform: translateY(-2px); /* Effetto leggero al passaggio del mouse/tocco */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.menu-item strong {
-    font-size: 1.1em;
-    color: #333;
-}
-
-.menu-item span {
-    font-size: 0.9em;
-    color: #6c757d;
-}
-
-.menu-item button {
-    background-color: #28a745; /* Pulsante verde (Aggiungi) */
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.menu-item button:active {
-    background-color: #1e7e34;
-}
-
-/* --- 4. SEZIONE CARRELLO (FISSA IN FONDO) --- */
-#cart {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #343a40; /* Sfondo scuro per contrasto */
-    color: white;
-    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.15);
-    padding: 15px 0;
-    z-index: 10;
-}
-
-#cart h2 {
-    color: white;
-    border-bottom: 1px solid #6c757d;
-    padding-bottom: 5px;
-    margin: 0 15px 10px 15px;
-}
-
-#cart-list {
-    list-style: none;
-    padding: 0 15px;
-    max-height: 150px; /* Limita l'altezza per non coprire tutto lo schermo */
-    overflow-y: auto; /* Aggiunge scroll se ci sono molti articoli */
-}
-
-#cart-list li {
-    padding: 5px 0;
-    border-bottom: 1px dashed #6c757d;
-    font-size: 0.9em;
-}
-
-#cart > p {
-    text-align: right;
-    font-size: 1.2em;
-    font-weight: bold;
-    padding: 10px 15px 0 15px;
-}
-
-#total-price {
-    color: #ffc107; /* Colore giallo per il totale */
-}
-
-#send-order-btn {
-    width: calc(100% - 30px); /* Larga quanto la sezione cart meno il padding */
-    margin: 10px 15px 5px 15px;
-    padding: 12px;
-    background-color: #dc3545; /* Pulsante rosso (Invia Ordine) */
-    color: white;
-    border: none;
-    font-size: 1.2em;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background-color 0.2s;
-}
-
-#send-order-btn:hover:not(:disabled) {
-    background-color: #c82333;
-}
-
-#send-order-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-/* --- 5. MOBILE VIEW (OPZIONALE MA CONSIGLIATO) --- */
-@media (max-width: 600px) {
-    body {
-        padding-bottom: 250px; /* Lascia spazio in fondo per il carrello fisso */
-    }
-    
-    .category-items {
-        grid-template-columns: 1fr; /* Una singola colonna su schermi piccoli */
-    }
-
-    #cart-list {
-        max-height: 100px;
-    }
-}
-
-/* Stile per i pulsanti del carrello interattivo (+, -) */
-.cart-btn {
-    padding: 2px 8px;
-    border: 1px solid #ffc107;
-    background-color: #343a40;
-    color: #ffc107;
-    cursor: pointer;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 1em;
-    transition: background-color 0.1s;
-}
-
-.cart-btn:hover {
-    background-color: #ffc107;
-    color: #343a40;
-}
-
-/* Stile specifico per il pulsante Rimuovi (×) */
-.cart-remove {
-    border: none !important;
-    background: none !important;
-    color: #dc3545 !important;
-}
-
-.cart-remove:hover {
-    color: #c82333 !important;
-    transform: scale(1.1);
-}
