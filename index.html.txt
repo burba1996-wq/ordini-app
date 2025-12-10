@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ordina dal Tavolo</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Ordina dal tuo tavolo</h1>
+    <p id="tableLabel"></p>
+  </header>
+
+  <main>
+    <section id="menuSection">
+      <h2>Menu</h2>
+      <div id="menuList"></div>
+    </section>
+
+    <section id="orderSection">
+      <h2>Il tuo ordine</h2>
+      <form id="orderForm">
+        <input type="hidden" id="table" name="table" />
+        <div>
+          <label>Nome (opzionale)</label>
+          <input type="text" id="customerName" />
+        </div>
+        <div id="cart">
+          <p>Seleziona i piatti dal menu.</p>
+        </div>
+
+        <div>
+          <label>Note</label>
+          <textarea id="notes" placeholder="Allergie, preferenze..."></textarea>
+        </div>
+
+        <button type="submit">Invia Ordine</button>
+      </form>
+      <p id="statusMsg"></p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
