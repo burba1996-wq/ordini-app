@@ -1,29 +1,46 @@
+// ====================================================================
+// 1. CONFIGURAZIONE E INIZIALIZZAZIONE FIREBASE
+// ====================================================================
+
+// CONFIGURAZIONE: Usa la TUA configurazione fornita
 const firebaseConfig = {
-  apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
-  authDomain: "menu-6630f.firebaseapp.com",
-  projectId: "menu-6630f",
-  storageBucket: "menu-6630f.firebasestorage.app",
-  messagingSenderId: "250958312970",
-  appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
-  measurementId: "G-GTQS2S4GNF"
+    apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
+    authDomain: "menu-6630f.firebaseapp.com",
+    projectId: "menu-6630f",
+    storageBucket: "menu-6630f.firebasestorage.app",
+    messagingSenderId: "250958312970",
+    appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
+    measurementId: "G-GTQS2S4GNF"
 };
-// Inizializza Firebase
+
+// Inizializza Firebase e Firestore (Compat Mode per la versione 9.x tramite CDN)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// --- 2. VARIABILI GLOBALI ---
+// ====================================================================
+// 2. VARIABILI GLOBALI E STATO
+// ====================================================================
+
+// Elementi DOM (Cache dei selettori)
 const menuContainer = document.getElementById('menu-container');
 const cartList = document.getElementById('cart-list');
 const totalPriceSpan = document.getElementById('total-price');
 const sendOrderBtn = document.getElementById('send-order-btn');
 const tableIdSpan = document.getElementById('table-id');
+// Costante per la navigazione rapida (che implementeremo al prossimo passo)
+const navQuickLinks = document.getElementById('quick-links'); 
 
+// Stato dell'applicazione
 let cart = []; // Array per contenere gli articoli nel carrello
 let tableId = 'DEFAULT_TAVOLO'; // Valore di default
 
-// --- 3. FUNZIONI LOGICHE ---
+// ====================================================================
+// 3. LOGICA DI CARRELLO E STATO
+// ====================================================================
 
-// Ottiene il parametro 'tableId' dall'URL (simula la scansione QR)
+/**
+ * Ottiene e imposta l'ID del tavolo dall'URL (?tableId=...)
+ */
 function getTableIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('tableId');
@@ -33,20 +50,27 @@ function getTableIdFromUrl() {
     tableIdSpan.textContent = tableId;
 }
 
-// Aggiunge un articolo al carrello
+/**
+ * Aggiunge un articolo al carrello o incrementa la quantità se già presente.
+ * @param {object} item - L'articolo da aggiungere ({id, name, price}).
+ */
 function addToCart(item) {
     const existingItem = cart.find(i => i.id === item.id);
 
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({...item, quantity: 1});
+        // Usa l'operatore spread per creare un nuovo oggetto con la quantità
+        cart.push({...item, quantity: 1}); 
     }
-
     renderCart();
 }
 
-// NUOVA FUNZIONE: Aggiorna la quantità di un articolo nel carrello
+/**
+ * Aggiorna la quantità di un articolo esistente nel carrello.
+ * @param {string} itemId - ID dell'articolo da aggiornare.
+ * @param {number} change - Valore di incremento/decremento (es. 1 o -1).
+ */
 function updateQuantity(itemId, change) {
     const itemIndex = cart.findIndex(i => i.id === itemId);
 
@@ -54,7 +78,6 @@ function updateQuantity(itemId, change) {
         const newQuantity = cart[itemIndex].quantity + change;
         
         if (newQuantity <= 0) {
-            // Se la quantità scende a zero o meno, rimuovi l'articolo
             removeItem(itemId);
         } else {
             cart[itemIndex].quantity = newQuantity;
@@ -63,19 +86,47 @@ function updateQuantity(itemId, change) {
     }
 }
 
-// NUOVA FUNZIONE: Rimuove un articolo dal carrello
+/**
+ * Rimuove un articolo completamente dal carrello.
+ * @param {string} itemId - ID dell'articolo da rimuovere.
+ */
 function removeItem(itemId) {
-    // Filtra l'array per mantenere solo gli articoli il cui ID NON corrisponde all'ID da rimuovere
     cart = cart.filter(item => item.id !== itemId);
     renderCart();
 }
 
-// Funzione aggiornata: Aggiorna la lista del carrello e il totale nell'interfaccia
+/**
+ * Collega gli eventi ai pulsanti di manipolazione del carrello (+, -, Rimuovi).
+ */
+function attachCartEventListeners() {
+    // Rimuoviamo i vecchi listener prima di collegarne di nuovi per evitare duplicazioni
+    // Questo è un metodo semplice, ma ri-renderizza l'intera lista ogni volta
+    
+    // Si usa il delegation event listener sull'elemento genitore (cartList)
+    cartList.onclick = (e) => {
+        const button = e.target.closest('.cart-btn');
+        if (!button) return; // Non è un pulsante del carrello
+
+        const itemId = button.dataset.id;
+        
+        if (button.classList.contains('cart-increment')) {
+            updateQuantity(itemId, 1);
+        } else if (button.classList.contains('cart-decrement')) {
+            updateQuantity(itemId, -1);
+        } else if (button.classList.contains('cart-remove')) {
+            removeItem(itemId);
+        }
+    };
+}
+
+
+/**
+ * Aggiorna la lista del carrello nell'interfaccia utente (UI).
+ */
 function renderCart() {
     cartList.innerHTML = '';
     let total = 0;
 
-    // Ordina il carrello per nome per una visualizzazione più pulita
     cart.sort((a, b) => a.name.localeCompare(b.name));
 
     if (cart.length === 0) {
@@ -115,66 +166,50 @@ function renderCart() {
 
     totalPriceSpan.textContent = total.toFixed(2);
     
-    // Dopo aver creato i pulsanti, colleghiamo i listener di evento
-    attachCartEventListeners();
-}
-// NUOVA FUNZIONE: Collega gli eventi ai pulsanti del carrello
-function attachCartEventListeners() {
-    document.querySelectorAll('.cart-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const itemId = e.target.dataset.id;
-            
-            if (e.target.classList.contains('cart-increment')) {
-                updateQuantity(itemId, 1); // Aumenta di 1
-            } else if (e.target.classList.contains('cart-decrement')) {
-                updateQuantity(itemId, -1); // Diminuisce di 1
-            } else if (e.target.classList.contains('cart-remove')) {
-                removeItem(itemId); // Rimuovi completamente
-            }
-        });
-    });
-}
-    
-    // Disabilita il pulsante se il carrello è vuoto
-    sendOrderBtn.disabled = cart.length === 0;
-
-    cart.forEach(item => {
-        const li = document.createElement('li');
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-        li.textContent = `${item.quantity} x ${item.name} (€${item.price.toFixed(2)}) - Totale: €${itemTotal.toFixed(2)}`;
-        cartList.appendChild(li);
-    });
-
-    totalPriceSpan.textContent = total.toFixed(2);
+    // Attacca i listener di evento SOLO una volta, all'inizio, 
+    // ma la funzione è chiamata qui per garantire che il delegation sia attivo.
+    // L'ottimizzazione è spostata nella parte di Inizializzazione.
 }
 
-// NUOVA FUNZIONE: Raggruppa gli articoli per categoria
+
+// ====================================================================
+// 4. LOGICA DEL MENU E FIREBASE
+// ====================================================================
+
+/**
+ * Raggruppa un array piatto di articoli per il campo 'category'.
+ * @param {Array} items - L'array di articoli dal database.
+ * @returns {object} Oggetto con le categorie come chiavi e gli array di articoli come valori.
+ */
 function groupItemsByCategory(items) {
     return items.reduce((acc, item) => {
-        const category = item.category || 'Altro'; // Usa 'Altro' se la categoria è mancante
+        const category = item.category || 'Altro'; 
         if (!acc[category]) {
             acc[category] = [];
         }
         acc[category].push(item);
         return acc;
     }, {});
-} 
-// FUNZIONE MODIFICATA: Visualizza il menu raggruppato
-function renderMenu(groupedItems) {
-    menuContainer.innerHTML = ''; // Pulisce il container
+}
 
-    // Ottieni le categorie in ordine alfabetico (opzionale)
+/**
+ * Visualizza il menu raggruppato in sezioni HTML.
+ * @param {object} groupedItems - Il menu raggruppato per categoria.
+ */
+function renderMenu(groupedItems) {
+    menuContainer.innerHTML = ''; 
+
+    // Ordina le categorie alfabeticamente
     const sortedCategories = Object.keys(groupedItems).sort();
 
     sortedCategories.forEach(category => {
         const categorySection = document.createElement('section');
-        categorySection.id = `category-${category.replace(/\s/g, '_')}`; // ID pulito
+        // ID pulito per l'ancoraggio (necessario per la navigazione rapida)
+        categorySection.id = `category-${category.replace(/\s+/g, '_').toLowerCase()}`; 
         categorySection.innerHTML = `<h2>${category}</h2>`;
         
         const itemsListDiv = document.createElement('div');
         itemsListDiv.className = 'category-items'; 
-        // Aggiungiamo uno stile per layout a griglia qui
 
         groupedItems[category].forEach(item => {
             const div = document.createElement('div');
@@ -184,18 +219,20 @@ function renderMenu(groupedItems) {
                     <strong>${item.name}</strong><br>
                     <span>€${item.price.toFixed(2)}</span>
                 </div>
-                <button data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                <button class="add-to-cart-btn" data-id="${item.id}" 
+                        data-name="${item.name}" data-price="${item.price}">
                     Aggiungi
                 </button>
             `;
             
-            // Aggiungi l'evento al pulsante (come prima)
-            const btn = div.querySelector('button');
+            // Aggiunge l'evento al pulsante "Aggiungi"
+            const btn = div.querySelector('.add-to-cart-btn');
             btn.addEventListener('click', () => {
                 addToCart({
                     id: item.id,
                     name: item.name,
-                    price: item.price
+                    // Converte il prezzo in un numero float per sicurezza
+                    price: parseFloat(item.price) 
                 });
             });
 
@@ -206,100 +243,23 @@ function renderMenu(groupedItems) {
         menuContainer.appendChild(categorySection);
     });
 }
-// Funzione che crea la struttura { Categoria1: [ArticoloA, ArticoloB], Categoria2: [...] }
-function groupItemsByCategory(items) {
-    return items.reduce((acc, item) => {
-        // Legge il campo category. Usa 'Altro' se per sbaglio è vuoto.
-        const category = item.category || 'Altro'; 
-        
-        // Se la categoria non esiste ancora nell'oggetto (acc), la crea
-        if (!acc[category]) {
-            acc[category] = [];
-        }
-        // Aggiunge l'articolo all'array di quella categoria
-        acc[category].push(item);
-        return acc;
-    }, {});
-}
-// La funzione che legge da Firestore e attiva il raggruppamento
+
+/**
+ * Legge il menu da Firestore, raggruppa e renderizza.
+ */
 async function fetchMenu() {
+    menuContainer.innerHTML = '<h2>Caricamento Menu...</h2>';
     try {
         const snapshot = await db.collection('menu').get();
         const menuItems = snapshot.docs.map(doc => ({
             id: doc.id,
+            // I prezzi salvati come Stringa vengono convertiti in Float
+            price: parseFloat(doc.data().price), 
             ...doc.data()
         }));
         
-        // CHIAMA LA FUNZIONE DI RAGGRUPPAMENTO
         const groupedItems = groupItemsByCategory(menuItems);
-        
-        // Passa il menu raggruppato alla funzione di rendering
-        renderMenu(groupedItems); 
-
-    } catch (error) {
-        // ... gestione errore
-    }
-}
-// La funzione che visualizza la struttura HTML
-function renderMenu(groupedItems) {
-    menuContainer.innerHTML = ''; 
-
-    // Ordina le categorie alfabeticamente per coerenza (es. Bibite, Caffetteria, Pasticceria)
-    const sortedCategories = Object.keys(groupedItems).sort();
-
-    sortedCategories.forEach(category => {
-        // Crea la <section> con l'intestazione della categoria
-        const categorySection = document.createElement('section');
-        categorySection.id = `category-${category.replace(/\s/g, '_')}`; 
-        categorySection.innerHTML = `<h2>${category}</h2>`;
-        
-        // ... (resto del codice che crea il div.category-items e i menu-item)
-        
-        menuContainer.appendChild(categorySection);
-    });
-}
-    items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'menu-item';
-        div.innerHTML = `
-            <div>
-                <strong>${item.name}</strong><br>
-                <span>€${item.price.toFixed(2)} (${item.category})</span>
-            </div>
-            <button data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
-                Aggiungi
-            </button>
-        `;
-        
-        // Aggiungi l'evento al pulsante
-        const btn = div.querySelector('button');
-        btn.addEventListener('click', () => {
-            // Quando si clicca, aggiungi l'oggetto al carrello
-            addToCart({
-                id: item.id,
-                name: item.name,
-                price: item.price
-            });
-        });
-
-        menuContainer.appendChild(div);
-    });
-}
-
-// FUNZIONE MODIFICATA: Legge il menu da Firestore
-async function fetchMenu() {
-    try {
-        const snapshot = await db.collection('menu').get();
-        const menuItems = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        // NUOVO PASSO: Raggruppa gli articoli
-        const groupedItems = groupItemsByCategory(menuItems);
-        
-        console.log("Menu caricato e raggruppato:", groupedItems);
-        renderMenu(groupedItems); // Passa gli articoli raggruppati
+        renderMenu(groupedItems);
 
     } catch (error) {
         console.error("Errore nel caricamento del menu: ", error);
@@ -307,7 +267,9 @@ async function fetchMenu() {
     }
 }
 
-// Invia l'ordine a Firestore
+/**
+ * Invia l'ordine a Firestore.
+ */
 async function sendOrder() {
     if (cart.length === 0) {
         alert("Il carrello è vuoto!");
@@ -317,20 +279,28 @@ async function sendOrder() {
     sendOrderBtn.disabled = true;
     sendOrderBtn.textContent = 'Invio in corso...';
     
+    // Crea una versione pulita degli articoli del carrello per il database
+    const itemsToSave = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+    }));
+    
     const orderData = {
         tableId: tableId,
-        items: cart,
+        items: itemsToSave,
         total: parseFloat(totalPriceSpan.textContent),
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'pending' // Stato iniziale dell'ordine
+        status: 'pending' 
     };
     
     try {
-        // Scrive il nuovo ordine nella raccolta 'orders'
         await db.collection('orders').add(orderData);
         
-        alert(`Ordine inviato con successo al Tavolo ${tableId}!`);
-        // Pulisce il carrello dopo l'invio
+        alert(`Ordine inviato con successo al Tavolo ${tableId}! Sarai servito a breve.`);
+        
+        // Pulisce lo stato
         cart = [];
         renderCart(); 
 
@@ -343,13 +313,23 @@ async function sendOrder() {
     }
 }
 
-// --- 4. INIZIALIZZAZIONE ---
+// ====================================================================
+// 5. INIZIALIZZAZIONE
+// ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Legge il tavolo dall'URL
     getTableIdFromUrl();
+    
+    // 2. Carica e visualizza il menu
     fetchMenu();
-    renderCart(); // Per inizializzare la visualizzazione
+    
+    // 3. Inizializza la visualizzazione del carrello vuoto
+    renderCart(); 
 
-    // Aggiunge l'evento al pulsante di invio
+    // 4. Collega i listener di base
     sendOrderBtn.addEventListener('click', sendOrder);
+    
+    // 5. Collega il listener di delegation per il carrello interattivo
+    attachCartEventListeners(); 
 });
