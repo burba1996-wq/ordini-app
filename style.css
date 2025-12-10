@@ -124,11 +124,11 @@ a {
     padding: 18px; /* Più spaziatura interna */
     margin-bottom: 12px;
     border-radius: 12px; /* Bordi più arrotondati */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* CHIUSURA RIGA TRONCATA */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ========================================================== */
-/* 4. BARRA FISSA CARRELLO  */
+/* 4. BARRA FISSA CARRELLO (Compattata e NON Cliccabile) */
 /* ========================================================== */
 
 #cart-fixed-bar {
@@ -139,10 +139,9 @@ a {
     background-color: var(--secondary-color); 
     z-index: 1000;
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
-    padding: 15px 20px;
+    padding: 10px 15px; /* Compattato per altezza ridotta */
     text-align: center;
-    pointer-events: none;
-}
+    pointer-events: none; /* Rende la barra non interattiva (solo scorrimento tramite script) */
 }
 
 #toggle-cart-btn {
@@ -154,8 +153,9 @@ a {
     font-weight: 700;
     padding: 0;
     display: flex;
-    justify-content: space-between; /* Spazio tra icona/testo e totale */
+    justify-content: space-between;
     align-items: center;
+    cursor: default; /* Imposta il cursore di default dato che non apre una modale */
 }
 
 #toggle-cart-btn i {
