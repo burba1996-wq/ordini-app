@@ -128,19 +128,21 @@ a {
 }
 
 /* ========================================================== */
-/* 4. BARRA FISSA CARRELLO (Nuova Implementazione Fissa) */
+/* 4. BARRA FISSA CARRELLO  */
 /* ========================================================== */
 
 #cart-fixed-bar {
     position: fixed;
-    bottom: 0; /* Lo fissa in fondo allo schermo */
+    bottom: 0; 
     left: 0;
     width: 100%;
-    background-color: var(--secondary-color); /* Verde per risalto */
+    background-color: var(--secondary-color); 
     z-index: 1000;
-    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); /* Ombra verso l'alto */
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
     padding: 15px 20px;
     text-align: center;
+    pointer-events: none;
+}
 }
 
 #toggle-cart-btn {
@@ -151,14 +153,13 @@ a {
     font-size: 1.1rem;
     font-weight: 700;
     padding: 0;
-    cursor: pointer;
     display: flex;
     justify-content: space-between; /* Spazio tra icona/testo e totale */
     align-items: center;
 }
 
 #toggle-cart-btn i {
-    margin-right: 10px;
+    margin-right: 5px;
 }
 
 /* Badge (Conteggio Articoli) */
