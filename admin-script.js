@@ -1,35 +1,39 @@
-// --- 1. CONFIGURAZIONE FIREBASE ---
+// ====================================================================
+// 1. CONFIGURAZIONE FIREBASE E INIZIALIZZAZIONE
+// ====================================================================
+
+// --- Configurazione (Includi solo i campi necessari per App/Auth/Firestore) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
-  authDomain: "menu-6630f.firebaseapp.com",
-  projectId: "menu-6630f",
-  storageBucket: "menu-6630f.firebasestorage.app",
-  messagingSenderId: "250958312970",
-  appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
-  measurementId: "G-GTQS2S4GNF"
+    apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
+    authDomain: "menu-6630f.firebaseapp.com",
+    projectId: "menu-6630f",
+    // Rimosse le chiavi non usate (storageBucket, messagingSenderId, ecc.) per pulizia
 };
+
 // Inizializzazione Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ====================================================================
-// 2. VARIABILI E GESTIONE AUTENTICAZIONE
-// ====================================================================
+// Elemento DOM principale per gli ordini
+const ordersContainer = document.getElementById('orders-container');
 
-// --- Funzioni di Login/Logout ---
+
+// ====================================================================
+// 2. GESTIONE AUTENTICAZIONE (AUTH)
+// ====================================================================
 
 /**
- * Gestisce il login per la pagina admin-login.html
+ * Gestisce il processo di login per admin-login.html.
+ * @returns {void}
  */
 function handleAdminLogin() {
-    // Si attiva solo se siamo sulla pagina di login Admin
     const emailInput = document.getElementById('admin-email');
     const passwordInput = document.getElementById('admin-password');
     const loginBtn = document.getElementById('admin-login-btn');
     const errorMessage = document.getElementById('error-message');
 
-    if (!emailInput || !loginBtn) return; // Non siamo sulla pagina di login
+    if (!emailInput || !loginBtn) return; // Controllo se siamo sulla pagina di login
 
     loginBtn.addEventListener('click', () => {
         const email = emailInput.value;
@@ -41,10 +45,11 @@ function handleAdminLogin() {
 
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
-                // Successo, reindirizzamento gestito da onAuthStateChanged
+                // Successo. onAuthStateChanged reindirizzerà a admin.html.
+                console.log("Login Admin riuscito.");
             })
             .catch(error => {
-                console.error("Errore di Login Admin: ", error.message);
+                console.error("Errore di Login Admin:", error.message);
                 errorMessage.textContent = 'Accesso negato. Credenziali non valide.';
             })
             .finally(() => {
@@ -55,18 +60,23 @@ function handleAdminLogin() {
 }
 
 /**
- * Funzione di Logout (Usata su admin.html)
+ * Funzione di Logout per admin.html.
+ * @returns {void}
  */
 function handleAdminLogout() {
     auth.signOut().then(() => {
-        // Reindirizzamento gestito da onAuthStateChanged
+        // Logout riuscito. onAuthStateChanged reindirizzerà a admin-login.html.
     }).catch(error => {
-        console.error("Errore di Logout: ", error);
-        alert("Errore durante il logout.");
+        console.error("Errore durante il Logout:", error);
+        alert("Errore durante il logout. Riprova.");
     });
 }
 
 // --- Listener Globale di Stato Autenticazione ---
+/**
+ * Verifica lo stato di autenticazione e gestisce il reindirizzamento.
+ * È il punto di ingresso per l'applicazione Admin.
+ */
 auth.onAuthStateChanged(user => {
     const isAdminPage = window.location.pathname.endsWith('admin.html');
     const isAdminLoginPage = window.location.pathname.endsWith('admin-login.html');
@@ -74,56 +84,69 @@ auth.onAuthStateChanged(user => {
     if (user) {
         // Utente autenticato
         if (isAdminLoginPage) {
-            // Se siamo sulla pagina di login ma l'utente è loggato, reindirizza alla dashboard
-            window.location.href = 'admin.html';
+            window.location.href = 'admin.html'; // Reindirizza alla dashboard
         } else if (isAdminPage) {
-            // Se siamo sulla dashboard e l'utente è loggato, avvia l'app
-            initializeAdminDashboard(user);
+            initializeAdminDashboard(user); // Avvia la dashboard
         }
     } else {
         // Utente NON autenticato
         if (isAdminPage) {
-            // Se siamo sulla dashboard ma non siamo loggati, reindirizza al login
-            window.location.href = 'admin-login.html';
+            window.location.href = 'admin-login.html'; // Reindirizza al login
         }
-        // Se siamo sulla pagina di login, non facciamo nulla (aspettiamo il login)
     }
 });
 
 
 // ====================================================================
-// 3. LOGICA DASHBOARD ADMIN (Attivata dopo il Login)
+// 3. LOGICA DASHBOARD (CORE)
 // ====================================================================
 
-const ordersContainer = document.getElementById('orders-container');
+/**
+ * Funzione di utilità per formattare il Timestamp in ora leggibile.
+ * @param {firebase.firestore.Timestamp} timestamp
+ * @returns {string} L'ora formattata.
+ */
+function formatTimestampToTime(timestamp) {
+    if (!timestamp) return 'Ora Sconosciuta';
+    // Converte il Timestamp Firebase in un oggetto Date
+    const date = timestamp.toDate();
+    // Formatta l'ora nel formato IT (es. 18:30:00)
+    return date.toLocaleTimeString('it-IT');
+}
 
 /**
  * Funzione principale che avvia la dashboard dopo il login.
+ * @param {firebase.User} user L'oggetto utente loggato.
  */
 function initializeAdminDashboard(user) {
-    console.log("Dashboard Admin avviata per:", user.email);
+    console.log(`Dashboard Admin avviata per: ${user.email}`);
 
     // Collega l'evento di Logout
     const logoutBtn = document.getElementById('admin-logout-btn');
-    if(logoutBtn) logoutBtn.addEventListener('click', handleAdminLogout);
+    if(logoutBtn) {
+        logoutBtn.addEventListener('click', handleAdminLogout);
+    }
     
     // Avvia l'ascolto degli ordini in tempo reale
     listenForNewOrders();
 }
 
 /**
- * Ascolta in tempo reale gli ordini da Firestore e li visualizza.
+ * Ascolta in tempo reale gli ordini "pending" (in attesa) da Firestore.
+ * Utilizza `onSnapshot` per aggiornare l'interfaccia istantaneamente.
  */
 function listenForNewOrders() {
-    // Query: Ordina per timestamp e prende solo gli ordini 'pending' (in attesa)
+    // La query filtra per 'pending' e ordina dal più vecchio al più recente (asc)
     db.collection('orders')
       .where('status', '==', 'pending')
       .orderBy('timestamp', 'asc') 
       .onSnapshot(snapshot => {
+        if (!ordersContainer) return;
+
         ordersContainer.innerHTML = ''; // Pulisce il contenitore
 
         if (snapshot.empty) {
-            ordersContainer.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 30px;">Nessun nuovo ordine in attesa.</p>';
+            ordersContainer.innerHTML = '<p class="empty-message">Nessun nuovo ordine in attesa.</p>';
             return;
         }
 
@@ -134,28 +157,31 @@ function listenForNewOrders() {
         });
     }, error => {
         console.error("Errore nel ricevere gli ordini: ", error);
-        ordersContainer.innerHTML = '<p style="color:red; text-align: center;">Errore nel caricamento degli ordini.</p>';
+        if (ordersContainer) {
+            ordersContainer.innerHTML = '<p class="error-message">Errore nel caricamento degli ordini. Controlla la console.</p>';
+        }
     });
 }
 
 /**
- * Crea la card HTML per un singolo ordine.
+ * Crea e aggiunge la card HTML per un singolo ordine al DOM.
+ * @param {object} order I dati dell'ordine.
+ * @param {string} orderId L'ID del documento Firestore.
  */
 function renderOrderCard(order, orderId) {
     const card = document.createElement('div');
-    card.className = 'order-card pending'; // Usa la classe CSS 'pending'
+    card.className = 'order-card pending';
     
-    // Formatta il timestamp (se esiste)
-    const time = order.timestamp ? order.timestamp.toDate().toLocaleTimeString('it-IT') : 'Ora Sconosciuta';
+    const time = formatTimestampToTime(order.timestamp);
     
-    // Contenuto dell'ordine
+    // Genera l'HTML per la lista degli articoli
     const itemsHtml = order.items.map(item => 
         `<li>${item.quantity}x ${item.name} (€${(item.quantity * item.price).toFixed(2)})</li>`
     ).join('');
     
     card.innerHTML = `
         <h3>Tavolo: ${order.tableId} <span class="order-time">${time}</span></h3>
-        <p>Staff: ${order.staffEmail || 'Cliente QR'}</p>
+        <p class="order-staff">Preso da: ${order.staffEmail || 'Cliente QR'}</p>
         
         <ul class="order-items">${itemsHtml}</ul>
         
@@ -165,7 +191,7 @@ function renderOrderCard(order, orderId) {
         </div>
     `;
 
-    // Aggiungi l'event listener al pulsante
+    // Listener per il pulsante 'Completa Ordine'
     card.querySelector('.complete-btn').addEventListener('click', () => {
         updateOrderStatus(orderId, 'completed');
     });
@@ -174,7 +200,9 @@ function renderOrderCard(order, orderId) {
 }
 
 /**
- * Aggiorna lo stato di un ordine su Firestore.
+ * Aggiorna lo stato di un ordine da "pending" a "completed" su Firestore.
+ * @param {string} orderId L'ID del documento da aggiornare.
+ * @param {string} newStatus Il nuovo stato (es. 'completed').
  */
 async function updateOrderStatus(orderId, newStatus) {
     try {
@@ -182,8 +210,8 @@ async function updateOrderStatus(orderId, newStatus) {
             status: newStatus,
             completionTime: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log(`Ordine ${orderId} segnato come ${newStatus}.`);
-        // La UI si aggiornerà automaticamente grazie a onSnapshot
+        // Non è necessario manipolare il DOM, onSnapshot lo farà.
+        console.log(`Ordine ${orderId} aggiornato a ${newStatus}.`);
     } catch (error) {
         console.error("Errore nell'aggiornamento dello stato:", error);
         alert("Impossibile aggiornare lo stato dell'ordine.");
@@ -192,13 +220,14 @@ async function updateOrderStatus(orderId, newStatus) {
 
 
 // ====================================================================
-// 4. INIZIALIZZAZIONE DOM
+// 4. INIZIALIZZAZIONE DOM GLOBALE
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Se siamo sulla pagina di login Admin, attiva il gestore login
+    // Si attiva solo la funzione di login se l'URL corrisponde
     if (window.location.pathname.endsWith('admin-login.html')) {
         handleAdminLogin();
     }
-    // L'avvio della dashboard su admin.html è gestito da onAuthStateChanged
+    // L'avvio completo della dashboard (initializeAdminDashboard) è gestito 
+    // dal listener di autenticazione globale (onAuthStateChanged).
 });
