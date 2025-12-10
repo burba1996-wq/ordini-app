@@ -19,6 +19,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const params = new URLSearchParams(window.location.search);
+const tableFromUrl = params.get("table");
+
+if (tableFromUrl) {
+  document.getElementById("table").value = tableFromUrl;
+}
 document.getElementById("orderForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -43,4 +49,5 @@ document.getElementById("orderForm").addEventListener("submit", async (e) => {
     console.error(error);
   }
 });
+
 
