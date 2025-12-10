@@ -1,5 +1,11 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { 
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
@@ -13,4 +19,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-console.log("Firebase collegato correttamente");
+// QUANDO INVII IL FORM
+document.getElementById("orderForm").addEventListener("submit", async (e) => {
+  e.preventDefault(); // blocca il refresh
+
+  const table = document.getElementById("table").value;
+  const dish = document.getElementById("dish").value;
+  const qty = document.getElementById("qty").value;
+
+  try {
+    await addDoc(collection(db, "orders"), {
+      table: table,
+      dish: dish,
+      qty: Number(qty),
+      status: "new",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Ordine inviato correttamente ✅");
+    document.getElementById("orderForm").reset();
+
+  } catch (error) {
+    alert("ERRORE invio ordine ❌");
+    console.error(error);
+  }
+});
