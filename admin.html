@@ -15,10 +15,22 @@
             padding: 10px 15px;
             background-color: #f7f9fc;
         }
+        /* Posizionamento del Logout (lo mettiamo fisso per maggiore chiarezza) */
         #logout-container {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+            /* Rimosso position: absolute; per integrarlo nel flexbox header */
+        }
+        #admin-logout-btn {
+            padding: 8px 15px;
+            background: #dc3545; /* Rosso Admin */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #admin-logout-btn:hover {
+            background: #c82333;
         }
 
         /* --- Stili Card Ordine --- */
@@ -80,6 +92,11 @@
             font-size: 1.3em;
             color: #dc3545; /* Totale in rosso per attenzione */
         }
+        .completed-label {
+             font-size: 0.8em;
+             color: #6c757d;
+             font-weight: normal;
+        }
         
         /* Pulsante Completa */
         .complete-btn {
@@ -95,53 +112,40 @@
         .complete-btn:hover {
             background-color: #1e7e34;
         }
-/* Nuovo Stile: Contenitore Filtri */
-    #order-filters {
-        display: flex;
-        justify-content: center;
-        margin: 20px auto;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #ddd;
-        max-width: 800px;
-    }
+        
+        /* --- Filtri Ordini --- */
+        #order-filters {
+            display: flex;
+            justify-content: center;
+            margin: 20px auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            max-width: 800px; /* Larghezza massima per centrare i pulsanti */
+        }
 
-    .filter-btn {
-        padding: 10px 20px;
-        margin: 0 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f8f8f8;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.2s, color 0.2s;
-    }
+        .filter-btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, color 0.2s;
+        }
 
-    .filter-btn.active {
-        background-color: #dc3545; /* Rosso Admin */
-        color: white;
-        border-color: #dc3545;
-    }
-    
-    .order-card.completed { 
-        border-left: 8px solid #007bff; /* Blu per ordini completati */
-        opacity: 0.7; 
-    }
-</style>
-
-<main>
-    <div id="order-filters">
-        <button class="filter-btn active" data-status="pending">Ordini In Attesa</button>
-        <button class="filter-btn" data-status="completed">Ordini Completati</button>
-    </div>
-    
-    <div id="orders-container">
-        <h2 style="text-align: center;">Caricamento Ordini...</h2>
-    </div>
-</main>
-        /* Stili di Stato (Visualizzazione importante!) */
-        .order-card.pending { border-left: 8px solid #ffc107; } /* Giallo - Urgente */
-        .order-card.ready { border-left: 8px solid #007bff; } /* Blu - Pronto per il ritiro/servizio */
-        .order-card.completed { border-left: 8px solid #6c757d; } /* Grigio - Archiviato */
+        .filter-btn.active {
+            background-color: #dc3545; /* Rosso Admin */
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        /* --- Stili di Stato --- */
+        .order-card.pending { border-left: 8px solid #ffc107; } /* Giallo - In Attesa */
+        .order-card.completed { 
+            border-left: 8px solid #007bff; /* Blu per ordini completati */
+            opacity: 0.8; 
+        }
         
         .empty-message, .error-message {
             text-align: center; 
@@ -157,17 +161,25 @@
         <div id="dashboard-header">
             <h1>Dashboard Ordini Bar</h1>
             <div id="logout-container">
-                <button id="admin-logout-btn" style="background: #dc3545;">Logout Admin</button>
+                <button id="admin-logout-btn">Logout Admin</button>
             </div>
         </div>
     </header>
 
-    <main id="orders-container">
-        <h2 style="text-align: center;">Caricamento Ordini...</h2>
+    <main>
+        <div id="order-filters">
+            <button class="filter-btn active" data-status="pending">Ordini In Attesa</button>
+            <button class="filter-btn" data-status="completed">Ordini Completati</button>
+        </div>
+        
+        <div id="orders-container">
+            <h2 style="text-align: center;">Caricamento Ordini...</h2>
+        </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
     <script src="admin-script.js"></script>
 </body>
