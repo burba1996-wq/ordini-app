@@ -14,31 +14,41 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Elemento DOM principale per gli ordini
-const ordersContainer = document.getElementById('orders-container');
+// Elementi DOM principali per la nuova interfaccia
+const tablesGridContainer = document.getElementById('tables-grid');
+const orderDetailsContainer = document.getElementById('order-details');
 
+// Mappa globale per memorizzare gli ordini attivi per Tavolo (key: tableId)
+let activeTableOrders = {}; 
+
+// Definizione degli stati e dei colori (per la griglia dei tavoli)
+const STATUS_COLORS = {
+    pending: 'pending',     // Colore Giallo/Arancio (classe CSS)
+    executed: 'executed',   // Colore Blu (classe CSS)
+    completed: 'completed', // Colore Verde (classe CSS - da rimuovere dal tavolo attivo)
+    free: 'free'            // Grigio (classe CSS - da usare come default)
+};
+const TOTAL_TABLES = 35; // Numero massimo di tavoli nella griglia
 
 // ====================================================================
-// 2. GESTIONE AUTENTICAZIONE (AUTH)
+// 2. GESTIONE AUTENTICAZIONE (AUTH) - NON MODIFICATA
 // ====================================================================
 
 /**
  * Gestisce il processo di login per admin-login.html.
- * Usa l'evento 'submit' del form per supportare sia il click che il tasto Invio.
- * @returns {void}
+ * ... (omissis, codice non modificato) ...
  */
 function handleAdminLogin() {
-    const loginForm = document.getElementById('admin-login-form'); // Riferimento al form
+    const loginForm = document.getElementById('admin-login-form');
     const emailInput = document.getElementById('admin-email');
     const passwordInput = document.getElementById('admin-password');
     const loginBtn = document.getElementById('admin-login-btn');
     const errorMessage = document.getElementById('error-message');
 
-    if (!loginForm || !loginBtn) return; // Controllo se siamo sulla pagina di login
+    if (!loginForm || !loginBtn) return;
 
-    // Modificato da click a submit del form
     loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Impedisce il ricaricamento della pagina
+        e.preventDefault();
         
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -49,7 +59,6 @@ function handleAdminLogin() {
 
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
-                // Successo. onAuthStateChanged reindirizzerà a admin.html.
                 console.log("Login Admin riuscito.");
             })
             .catch(error => {
@@ -65,7 +74,7 @@ function handleAdminLogin() {
 
 /**
  * Funzione di Logout per admin.html.
- * @returns {void}
+ * ... (omissis, codice non modificato) ...
  */
 function handleAdminLogout() {
     auth.signOut().then(() => {
@@ -77,39 +86,32 @@ function handleAdminLogout() {
 }
 
 // --- Listener Globale di Stato Autenticazione ---
-/**
- * Verifica lo stato di autenticazione e gestisce il reindirizzamento.
- * È il punto di ingresso per l'applicazione Admin.
- */
 auth.onAuthStateChanged(user => {
     const isAdminPage = window.location.pathname.endsWith('admin.html');
     const isAdminLoginPage = window.location.pathname.endsWith('admin-login.html');
 
     if (user) {
-        // Utente autenticato
-        // NOTA: La validazione del Custom Claim 'role: admin' dovrebbe avvenire qui.
-        // Se non hai implementato i Custom Claims, questo reindirizzamento è sufficiente per ora.
         if (isAdminLoginPage) {
-            window.location.href = 'admin.html'; // Reindirizza alla dashboard
+            window.location.href = 'admin.html'; 
         } else if (isAdminPage) {
-            initializeAdminDashboard(user); // Avvia la dashboard
+            initializeAdminDashboard(user); 
         }
     } else {
-        // Utente NON autenticato
         if (isAdminPage) {
-            window.location.href = 'admin-login.html'; // Reindirizza al login
+            window.location.href = 'admin-login.html'; 
         }
     }
 });
 
 
 // ====================================================================
-// 3. LOGICA DASHBOARD (CORE)
+// 3. LOGICA DASHBOARD (CORE) - MODIFICATA PER LA GRIGLIA
 // ====================================================================
 
 // Stato globale per il filtro attivo e la funzione per disiscriversi dal listener
 let currentFilterStatus = 'pending';
 let unsubscribeOrders = null; 
+let selectedTableId = null; // Memorizza il tavolo attualmente selezionato
 
 /**
  * Funzione di utilità per formattare il Timestamp in ora leggibile.
@@ -143,161 +145,251 @@ function initializeAdminDashboard(user) {
         logoutBtn.addEventListener('click', handleAdminLogout);
     }
     
-    // 1. Configura i pulsanti di filtro
-    setupOrderFilters(); 
+    // 1. Inizializza la griglia dei tavoli (vuota)
+    renderTableGrid();
     
-    // 2. Avvia l'ascolto degli ordini in tempo reale
-    listenForOrdersByStatus(currentFilterStatus);
+    // 2. Avvia l'ascolto degli ordini in tempo reale (NON FILTRATO)
+    // Per la griglia dei tavoli, ascoltiamo TUTTI gli ordini non pagati.
+    listenForActiveOrders(); 
+
+    // 3. Configura gli event listener per i click sui tavoli
+    if (tablesGridContainer) {
+        tablesGridContainer.addEventListener('click', handleTableClick);
+    }
+
+    // 4. Configura gli event listener per i filtri (se li hai)
+    // setupOrderFilters(); // Rimosso se si usa solo la vista a griglia
+
+    // Event listener per l'aggiornamento dello stato (pulsanti nel pannello di dettaglio)
+    if(orderDetailsContainer) {
+        orderDetailsContainer.addEventListener('click', handleStatusButtonClick);
+    }
+}
+
+
+// ====================================================================
+// 4. LOGICA DASHBOARD - VISTA TAVOLI
+// ====================================================================
+
+/**
+ * Genera la griglia vuota dei tavoli nell'HTML la prima volta.
+ */
+function renderTableGrid() {
+    if (!tablesGridContainer) return;
+
+    tablesGridContainer.innerHTML = ''; 
+
+    for (let i = 1; i <= TOTAL_TABLES; i++) {
+        const tableNumber = String(i);
+
+        const tableButton = document.createElement('button');
+        tableButton.className = `table-btn ${STATUS_COLORS.free}`; // Inizia come 'free'
+        tableButton.textContent = tableNumber;
+        tableButton.dataset.table = tableNumber;
+        
+        tablesGridContainer.appendChild(tableButton);
+    }
 }
 
 /**
- * Configura gli event listener per i pulsanti di filtro.
+ * Ascolta in tempo reale TUTTI gli ordini non ancora completati (pending, executed).
  */
-function setupOrderFilters() {
-    const filterContainer = document.getElementById('order-filters');
-    if (!filterContainer) return;
-
-    filterContainer.querySelectorAll('.filter-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const newStatus = button.getAttribute('data-status');
-            if (newStatus === currentFilterStatus) return; // Non fare nulla se lo stato è lo stesso
-
-            // Aggiorna la classe 'active'
-            const currentActive = filterContainer.querySelector('.active');
-            if (currentActive) {
-                currentActive.classList.remove('active');
-            }
-            button.classList.add('active');
-
-            // Aggiorna lo stato e riavvia il listener
-            currentFilterStatus = newStatus;
-            listenForOrdersByStatus(currentFilterStatus);
-        });
-    });
-}
-
-/**
- * Ascolta in tempo reale gli ordini in base allo stato selezionato.
- * @param {string} status Lo stato da filtrare ('pending' o 'completed').
- */
-function listenForOrdersByStatus(status) {
-    if (!ordersContainer) return;
-    
+function listenForActiveOrders() {
     // Stacca il listener precedente, se esiste
     if (unsubscribeOrders) {
         unsubscribeOrders();
         unsubscribeOrders = null;
     }
-    
-    ordersContainer.innerHTML = '<h2 style="text-align: center;">Caricamento Ordini...</h2>';
 
-    // Determina l'ordinamento: pending (dal più vecchio, asc), completed (dal più nuovo, desc)
-    const sortDirection = (status === 'pending') ? 'asc' : 'desc';
-
-    // Query dinamica
+    // Ascolta tutti gli ordini dove lo stato NON è 'completed'
     const query = db.collection('orders')
-      .where('status', '==', status)
-      .orderBy('timestamp', sortDirection); 
-      
-    // Avvia il nuovo listener e salva la funzione di unsubscribe
+      .where('status', '!=', 'completed')
+      .orderBy('status', 'asc') // Ordina pending prima di executed
+      .orderBy('timestamp', 'asc');
+    
+    console.log("Avvio listener per gli ordini attivi...");
+
     unsubscribeOrders = query.onSnapshot(snapshot => {
-        ordersContainer.innerHTML = ''; // Pulisce il contenitore
-
-        if (snapshot.empty) {
-            const message = (status === 'pending') 
-                ? 'Nessun nuovo ordine in attesa.' 
-                : 'Nessun ordine completato di recente.';
-            ordersContainer.innerHTML = `<p class="empty-message">${message}</p>`;
-            return;
-        }
-
+        // 1. Reset e ricostruzione della mappa degli ordini attivi
+        const newActiveOrders = {};
         snapshot.forEach(doc => {
             const order = doc.data();
-            const orderId = doc.id;
-            renderOrderCard(order, orderId);
+            // L'ordine più recente per un tavolo è quello da mostrare.
+            // Dato che ordiniamo per timestamp ASC, l'ultimo trovato è l'ordine più vecchio in attesa.
+            // Per semplicità, consideriamo che ogni tavolo possa avere un solo ordine attivo alla volta.
+            // Utilizziamo l'ID dell'ordine di Firestore (doc.id) per le azioni.
+            if (!newActiveOrders[order.tableId] || order.timestamp.toDate() > newActiveOrders[order.tableId].timestamp.toDate()) {
+                 newActiveOrders[order.tableId] = { ...order, docId: doc.id };
+            }
         });
+        activeTableOrders = newActiveOrders;
+
+        // 2. Aggiorna l'aspetto di tutti i pulsanti sulla griglia
+        updateTableGridAppearance();
+
+        // 3. Ricarica i dettagli se il tavolo selezionato è stato aggiornato
+        if (selectedTableId && activeTableOrders[selectedTableId]) {
+            displayOrderDetails(activeTableOrders[selectedTableId]);
+        } else if (selectedTableId && !activeTableOrders[selectedTableId]) {
+            // Se l'ordine del tavolo selezionato è appena stato completato
+            displayTableFree(selectedTableId);
+            selectedTableId = null;
+        }
+
     }, error => {
-        console.error("Errore nel ricevere gli ordini:", error);
-        // NOTA: Se l'errore è "Permission Denied", controllare le Regole di Sicurezza di Firestore!
-        ordersContainer.innerHTML = '<p class="error-message">Errore nel caricamento degli ordini. Controlla la console.</p>';
+        console.error("Errore nel ricevere gli ordini attivi:", error);
     });
 }
 
 /**
- * Crea e aggiunge la card HTML per un singolo ordine al DOM.
- * @param {object} order I dati dell'ordine.
- * @param {string} orderId L'ID del documento Firestore.
+ * Aggiorna il colore e le classi dei pulsanti dei tavoli in base a activeTableOrders.
  */
-function renderOrderCard(order, orderId) {
-    const card = document.createElement('div');
-    card.className = `order-card ${order.status}`; 
+function updateTableGridAppearance() {
+    for (let i = 1; i <= TOTAL_TABLES; i++) {
+        const tableNumber = String(i);
+        const tableButton = tablesGridContainer.querySelector(`[data-table="${tableNumber}"]`);
+
+        if (!tableButton) continue;
+
+        const activeOrder = activeTableOrders[tableNumber];
+
+        // Rimuovi tutte le classi di stato precedenti
+        Object.values(STATUS_COLORS).forEach(statusClass => {
+            tableButton.classList.remove(statusClass);
+        });
+
+        if (activeOrder) {
+            // Ordine Attivo: applica la classe pending/executed
+            tableButton.classList.add(activeOrder.status); 
+        } else {
+            // Tavolo Libero: applica la classe free
+            tableButton.classList.add(STATUS_COLORS.free);
+        }
+    }
+}
+
+/**
+ * Gestisce il click su un tavolo della griglia.
+ */
+function handleTableClick(e) {
+    const button = e.target.closest('.table-btn');
+    if (!button) return;
+
+    const tableNumber = button.dataset.table;
+    selectedTableId = tableNumber;
+
+    // 1. Gestione della selezione visiva
+    document.querySelectorAll('.table-btn').forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
+
+    const activeOrder = activeTableOrders[tableNumber];
+
+    if (activeOrder) {
+        // 2. Mostra i dettagli dell'ordine
+        displayOrderDetails(activeOrder);
+    } else {
+        // 2. Tavolo Libero
+        displayTableFree(tableNumber);
+    }
+}
+
+/**
+ * Visualizza i dettagli dell'ordine selezionato nel pannello di dettaglio.
+ * Simile a renderOrderCard, ma orientato alla singola visualizzazione.
+ */
+function displayOrderDetails(order) {
+    if (!orderDetailsContainer) return;
+
+    const timeToDisplay = formatTimestampToTime(order.timestamp, false);
     
-    // Formatta l'ora in base allo stato
-    const timeToDisplay = (order.status === 'completed' && order.completionTime)
-        ? formatTimestampToTime(order.completionTime, true) // Include data e ora per storico
-        : formatTimestampToTime(order.timestamp, false); // Solo ora per pending
-    
-    // Crea la lista degli articoli
     const itemsHtml = order.items.map(item => 
         `<li>${item.quantity}x ${item.name} <span class="item-price">€${(item.quantity * item.price).toFixed(2)}</span></li>`
     ).join('');
     
-    // AGGIUNTO: Gestione della visualizzazione delle note
     const noteText = order.notes ? order.notes.trim() : '';
     const noteHtml = noteText
-        ? `<div class="order-note-display">
-               <strong><i class="fas fa-sticky-note"></i> NOTA:</strong> ${noteText}
-           </div>`
-        : ''; 
-    // FINE AGGIUNTA NOTE
+        ? `<div class="order-note-display"><strong><i class="fas fa-sticky-note"></i> NOTA:</strong> ${noteText}</div>`
+        : '';
+
+    // Contenuto dinamico del pulsante
+    let buttonText;
+    let newStatusOnNextClick;
     
-    // Contenuto dinamico del footer (Pulsante vs Etichetta Completato)
-    let footerContent;
     if (order.status === 'pending') {
-        footerContent = `<button class="complete-btn" data-id="${orderId}">Completa Ordine</button>`;
+        buttonText = 'MARCA COME ESEGUITO';
+        newStatusOnNextClick = 'executed';
+    } else if (order.status === 'executed') {
+        buttonText = 'MARCA COME PAGATO (COMPLETA)';
+        newStatusOnNextClick = 'completed';
     } else {
-        footerContent = `<span class="completed-label">Completato alle ${timeToDisplay}</span>`;
+        buttonText = 'STATO SCONOSCIUTO';
+        newStatusOnNextClick = '';
     }
 
-    card.innerHTML = `
+    orderDetailsContainer.innerHTML = `
         <div class="card-header">
-            <h3>Tavolo: ${order.tableId}</h3>
-            <span class="order-time">${timeToDisplay}</span>
+            <h3>Ordine #${order.docId.substring(0, 6)} - Tavolo ${order.tableId}</h3>
+            <span class="order-time">Ricevuto alle ${timeToDisplay}</span>
         </div>
         
         <ul class="order-items">${itemsHtml}</ul>
         
-        ${noteHtml} <div class="order-footer">
+        ${noteHtml} 
+        
+        <div class="order-footer">
             <strong>TOTALE: €${order.total.toFixed(2)}</strong>
-            ${footerContent}
+            <button class="update-status-btn" 
+                    data-order-id="${order.docId}" 
+                    data-current-status="${order.status}" 
+                    data-new-status="${newStatusOnNextClick}">
+                ${buttonText}
+            </button>
         </div>
     `;
-
-    // Aggiungi l'event listener solo se l'ordine è in attesa
-    if (order.status === 'pending') {
-        // Usa il delegation o l'elemento specifico per l'evento
-        const completeButton = card.querySelector('.complete-btn');
-        if (completeButton) {
-             completeButton.addEventListener('click', () => {
-                 updateOrderStatus(orderId, 'completed');
-             });
-        }
-    }
-
-    ordersContainer.appendChild(card);
+    // L'event listener è già impostato per delegazione in initializeAdminDashboard
 }
 
 /**
+ * Visualizza il messaggio "Tavolo libero" nel pannello di dettaglio.
+ */
+function displayTableFree(tableNumber) {
+     if (!orderDetailsContainer) return;
+     orderDetailsContainer.innerHTML = `<p class="empty-message">Tavolo ${tableNumber} libero. Nessun ordine attivo.</p>`;
+}
+
+/**
+ * Gestisce il click sui pulsanti di aggiornamento dello stato (dal pannello di dettaglio).
+ */
+function handleStatusButtonClick(e) {
+    const button = e.target.closest('.update-status-btn');
+    if (!button) return;
+
+    const orderId = button.dataset.orderId;
+    const newStatus = button.dataset.newStatus;
+
+    if (orderId && newStatus) {
+        updateOrderStatus(orderId, newStatus);
+    }
+}
+
+
+/**
  * Aggiorna lo stato di un ordine su Firestore.
+ * @param {string} orderId L'ID del documento Firestore.
+ * @param {string} newStatus Lo stato da impostare ('executed' o 'completed').
  */
 async function updateOrderStatus(orderId, newStatus) {
+    const updateData = { status: newStatus };
+    
+    // Aggiungi l'ora di completamento solo se lo stato finale è 'completed'
+    if (newStatus === 'completed') {
+        updateData.completionTime = firebase.firestore.FieldValue.serverTimestamp();
+    }
+
     try {
-        await db.collection('orders').doc(orderId).update({
-            status: newStatus,
-            // Registra l'ora di completamento solo quando l'ordine viene segnato come completato
-            completionTime: firebase.firestore.FieldValue.serverTimestamp() 
-        });
+        await db.collection('orders').doc(orderId).update(updateData);
         console.log(`Ordine ${orderId} segnato come ${newStatus}.`);
+        // La vista si aggiornerà automaticamente grazie a listenForActiveOrders()
     } catch (error) {
         console.error("Errore nell'aggiornamento dello stato:", error);
         alert("Impossibile aggiornare lo stato dell'ordine. (Controlla le regole di scrittura admin)");
@@ -305,7 +397,7 @@ async function updateOrderStatus(orderId, newStatus) {
 }
 
 // ====================================================================
-// 4. INIZIALIZZAZIONE DOM GLOBALE
+// 5. INIZIALIZZAZIONE DOM GLOBALE - NON MODIFICATA
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
