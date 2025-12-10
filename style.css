@@ -192,3 +192,33 @@ section h2 {
         max-height: 100px;
     }
 }
+
+/* Stile per i pulsanti del carrello interattivo (+, -) */
+.cart-btn {
+    padding: 2px 8px;
+    border: 1px solid #ffc107;
+    background-color: #343a40;
+    color: #ffc107;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.1s;
+}
+
+.cart-btn:hover {
+    background-color: #ffc107;
+    color: #343a40;
+}
+
+/* Stile specifico per il pulsante Rimuovi (×) */
+.cart-remove {
+    border: none !important;
+    background: none !important;
+    color: #dc3545 !important;
+}
+
+.cart-remove:hover {
+    color: #c82333 !important;
+    transform: scale(1.1);
+}
