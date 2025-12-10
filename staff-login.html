@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login | Presa Ordini</title>
+    <link rel="stylesheet" href="style.css"> 
+    <style>
+        /* Stili specifici per il form di login, riutilizzando i colori del tuo style.css */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .login-container h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .login-container button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            transition: background-color 0.2s;
+        }
+        .login-container button:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Accesso Staff</h2>
+        <input type="email" id="staff-email" placeholder="Email Staff" required>
+        <input type="password" id="staff-password" placeholder="Password" required>
+        <button id="login-btn">Accedi</button>
+        <p id="error-message" style="color: red; margin-top: 15px;"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <script src="staff-script.js"></script>
+</body>
+</html>
