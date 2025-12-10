@@ -11,8 +11,8 @@
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombreggiatura più morbida */
     --delete-color: #dc3545; /* Rosso per eliminare */
     
-    /* Variabile per l'altezza totale di header + nav */
-    --header-height: 110px; 
+    /* MODIFICATO: Variabile per l'altezza totale di header + nav (Ridotto da 110px) */
+    --header-height: 90px; 
 }
 
 /* Importa un font moderno se non è già nel tuo HTML (ad esempio via Google Fonts) */
@@ -39,7 +39,8 @@ a {
 .menu-header {
     background-color: var(--card-bg); /* Sfondo Header chiaro */
     color: var(--text-dark); /* Testo Header scuro */
-    padding: 10px 0; /* Ridotto il padding per renderlo più basso */
+    /* MODIFICATO: Ridotto il padding verticale per diminuire l'altezza */
+    padding: 8px 0; /* Era 10px */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Ombra leggera */
     position: fixed; /* Fissa in alto */
     top: 0;
@@ -73,7 +74,8 @@ a {
     
     /* Blocco la nav subito sotto l'header principale */
     position: sticky;
-    top: 60px; /* Adatta questo valore all'altezza dell'header compattato */
+    /* MODIFICATO: Adattato il top alla nuova altezza ridotta dell'header */
+    top: 48px; /* Era 60px */
     z-index: 900;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -101,7 +103,7 @@ a {
 /* ========================================================= */
 #menu-container {
     max-width: 900px;
-    /* Questo padding-top compensa l'header fisso + la nav di categoria */
+    /* UTILIZZA LA NUOVA VARIABILE --header-height RIDOTTA */
     padding-top: var(--header-height); 
     margin: 0 auto;
     padding-left: 20px;
@@ -139,7 +141,8 @@ a {
     background-color: var(--secondary-color); 
     z-index: 1000;
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
-    padding: 10px 15px; /* Compattato per altezza ridotta */
+    /* MODIFICATO: Aumento padding per ingrandire la barra */
+    padding: 15px 15px; /* Era 10px */
     text-align: center;
     
 }
@@ -149,7 +152,8 @@ a {
     background: none;
     border: none;
     color: white;
-    font-size: 1.1rem;
+    /* MODIFICATO: Aumento della dimensione del testo */
+    font-size: 1.3rem; /* Era 1.1rem */
     font-weight: 700;
     padding: 0;
     display: flex;
@@ -356,23 +360,4 @@ a {
     color: var(--text-dark); /* Totale non in rosso, ma scuro */
 }
 .order-footer strong {
-    color: var(--delete-color); /* Totale in rosso per maggiore enfasi */
-}
-
-/* Pulsante Completa */
-.complete-btn {
-    padding: 10px 18px;
-    background-color: var(--secondary-color); /* Verde */
-    border-radius: 4px;
-    font-size: 0.9em;
-    font-weight: 600;
-}
-.complete-btn:hover {
-    background-color: #1e7e34;
-}
-
-.completed-label {
-    font-size: 0.9em;
-    color: var(--primary-color);
-    font-weight: 600;
-}
+    color: var(--
