@@ -166,3 +166,23 @@ a {
     margin-right: 5px;
 }
 
+/* ========================================================== */
+/* 5. STILI PANNELLO ADMIN AGGIUNTIVI (incluso per la nota) */
+/* ========================================================== */
+
+/* Stile per il contenitore della nota (usato in admin-script.js) */
+.order-note-display {
+    margin: 15px 0 10px 0;
+    padding: 10px 15px;
+    border-left: 5px solid #ffc107; /* Giallo/Arancio per evidenziare */
+    background-color: #fff9e6; /* Sfondo leggero */
+    font-size: 1em;
+    color: #333;
+    border-radius: 3px;
+    white-space: pre-wrap; /* Mantiene la formattazione se l'utente usa invio */
+}
+
+.order-note-display strong {
+    color: #ffc107;
+    margin-right: 5px;
+}
