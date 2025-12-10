@@ -1,24 +1,69 @@
-<main id="menu-container" style="pointer-events: none; opacity: 0.5;">
-        </main>
-
-    <section id="full-cart-details" class="hidden-cart">
-        <div id="cart-inner-full">
-            <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
-            <ul id="cart-list">
-                </ul>
-            <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
-            <button id="send-order-btn" class="main-action-btn">Invia Ordine</button>
-            <button id="close-cart-btn" class="simple-btn">Chiudi e Continua Ordine</button>
-        </div>
-    </section>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff | Presa Ordini</title>
     
-    <section id="cart-fixed-bar-staff" class="hidden">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <header class="menu-header">
+        <div class="header-content">
+            <div class="header-main-row">
+                <h1>STAFF ORDER APP</h1>
+                <button id="logout-btn" class="simple-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="header-table-controls">
+                <label for="table-select">Seleziona Tavolo:</label>
+                <select id="table-select"></select>
+                <p style="display: inline-block; margin-left: 15px;">Ordine per: <strong><span id="table-id">NESSUNO</span></strong></p>
+            </div>
+        </div>
+        
+        <nav id="quick-links" class="category-nav">
+        </nav>
+    </header>
+
+    <main> 
+        <section id="menu-container" style="pointer-events: none; opacity: 0.5;"> 
+            <div class="loading-state">
+                <i class="fas fa-hand-pointer"></i>
+                <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
+            </div>
+            </section>
+
+        <div id="order-anchor-point" style="height: 1px;"></div> 
+
+    </main>
+    
+    <section id="cart-fixed-bar-staff">
         <button id="toggle-full-cart-btn">
-            <i class="fas fa-shopping-cart"></i> 
+            <i class="fas fa-shopping-cart"></i>
             Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
         </button>
     </section>
 
+    <section id="full-cart-details" class="hidden-cart">
+        <div id="cart-inner-full">
+            <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
+            
+            <ul id="cart-list">
+                </ul>
+            
+            <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
+            
+            <button id="send-order-btn" class="main-action-btn">Invia Ordine</button>
+            <button id="close-cart-btn" class="simple-btn"><i class="fas fa-times"></i> Chiudi e Continua Ordine</button>
+        </div>
+    </section>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
