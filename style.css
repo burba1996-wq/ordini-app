@@ -1,433 +1,112 @@
- /* ========================================================= */
-
-/* 1. Reset & Base (Aggiornamento Colori e Font) */
-
 /* ========================================================= */
-
+/* 1. Reset & Base (Aggiornamento Colori e Font) */
+/* ========================================================= */
 :root {
-
     /* NUOVI COLORI: Blu Moderno e Verde/Giallo per Accenti */
-
     --primary-color: #007bff; /* Blu Moderno per intestazioni e accenti principali */
-
     --secondary-color: #28a745; /* Verde per azioni positive (Aggiungi, Invia) */
-
     --text-dark: #343a40; /* Grigio Scuro */
-
     --bg-light: #f4f6f9; /* Sfondo Grigio Chiarissimo */
-
     --card-bg: #ffffff;
-
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombreggiatura più morbida */
-
     --delete-color: #dc3545; /* Rosso per eliminare */
-
 }
-
-
 
 /* Importa un font moderno se non è già nel tuo HTML (ad esempio via Google Fonts) */
-
 /* Se usi Google Fonts, aggiungi questo link nel tuo <head>: 
-
    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
-
 */
-
 body {
-
     font-family: 'Roboto', Arial, sans-serif; /* Font più moderno */
-
     background-color: var(--bg-light);
-
     color: var(--text-dark);
-
     line-height: 1.6;
-
     padding-bottom: 80px; 
-
 }
-
-
 
 a {
-
     text-decoration: none;
-
     color: var(--primary-color);
-
 }
 
-
-
 /* ========================================================= */
-
 /* 2. Header & Navigazione (Più pulito e minimalista) */
-
 /* ========================================================= */
-
 .menu-header {
-
     background-color: var(--card-bg); /* Sfondo Header chiaro */
-
     color: var(--text-dark); /* Testo Header scuro */
-
     padding: 15px 0;
-
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Ombra leggera */
-
     position: sticky;
-
     top: 0;
-
     z-index: 1000;
-
 }
 
-
+.header-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
 
 .menu-header h1 {
-
     font-size: 2em; /* Titolo leggermente più grande */
-
     font-weight: 700;
-
     color: var(--primary-color);
-
 }
-
-
 
 /* Navigazione Categorie (Quick Links) */
-
 .category-nav {
-
     display: flex;
-
     overflow-x: auto; 
-
     white-space: nowrap;
-
     padding: 10px 0;
-
     background-color: var(--card-bg); /* Navigazione Chiara */
-
     border-bottom: 1px solid #eee;
-
 }
-
-
 
 .category-btn {
-
     display: inline-block;
-
     padding: 8px 18px; /* Più imbottitura orizzontale */
-
     margin: 0 5px;
-
     border-radius: 25px; /* Bordi più arrotondati (Pill shape) */
-
     background-color: var(--bg-light); /* Sfondo bottone grigio chiaro */
-
     color: var(--text-dark);
-
     font-weight: 500;
-
     cursor: pointer;
-
     transition: background-color 0.2s, color 0.2s;
-
     flex-shrink: 0; 
-
 }
-
-
 
 .category-btn:hover, .category-btn.active {
-
     background-color: var(--primary-color); /* Blu acceso quando attivo */
-
     color: white;
-
 }
 
-
-
 /* ========================================================= */
-
 /* 3. Menu Items & Container (Carte pulite) */
-
 /* ========================================================= */
-
 #menu-container {
-
     max-width: 900px;
-
     margin: 20px auto;
-
     padding: 0 20px;
-
 }
-
-
 
 .menu-category h2 {
-
     font-size: 2em;
-
     color: var(--text-dark);
-
     /* Rimuoviamo la linea di accento giallo/rosso per un look più pulito */
-
     border-bottom: none; 
-
     margin-top: 30px;
-
     margin-bottom: 15px;
-
 }
-
-
 
 .menu-item-card {
-
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
-
     background: var(--card-bg);
-
     padding: 18px; /* Più spaziatura interna */
-
     margin-bottom: 12px;
-
     border-radius: 12px; /* Bordi più arrotondati */
-
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Ombra più definita */
-
-}
-
-
-
-.item-info h3 {
-
-    font-size: 1.3em;
-
-    color: var(--text-dark);
-
-    font-weight: 700;
-
-}
-
-
-
-.item-info p {
-
-    font-size: 1em; /* Descrizione leggermente più grande */
-
-    color: #6c757d;
-
-    margin-top: 5px;
-
-}
-
-
-
-.item-controls {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px; /* Spazio aumentato */
-
-}
-
-
-
-/* CONTROLLI +/- MAGGIORI E QUADRATI */
-
-.item-controls button {
-
-    background: var(--primary-color);
-
-    color: white;
-
-    border: none;
-
-    border-radius: 8px; /* Quadrato arrotondato anziché tondo */
-
-    width: 38px; /* Larghezza aumentata */
-
-    height: 38px; /* Altezza aumentata */
-
-    font-size: 1.5em; /* Icone/Testo più grandi */
-
-    cursor: pointer;
-
-    transition: background-color 0.2s;
-
-}
-
-
-
-.item-controls .add-to-cart-btn {
-
-    background: var(--secondary-color); /* Verde per Aggiungi */
-
-    width: auto; /* Lascia che il testo definisca la larghezza */
-
-    padding: 5px 15px;
-
-    font-size: 1em;
-
-    border-radius: 5px;
-
-}
-
-.item-controls .add-to-cart-btn:hover {
-
-    background: #1e7e34;
-
-}
-
-
-
-/* ========================================================= */
-
-/* 4. Carrello Fisso (Barra inferiore) */
-
-/* ========================================================= */
-
-#cart-fixed-bar {
-
-    position: fixed;
-
-    bottom: 0;
-
-    left: 0;
-
-    width: 100%;
-
-    background-color: var(--card-bg); /* Barra Carrello Bianca/Chiara */
-
-    padding: 10px;
-
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15); /* Ombra più scura */
-
-    z-index: 999;
-
-}
-
-
-
-#toggle-cart-btn {
-
-    width: 100%;
-
-    padding: 15px; /* Più imbottitura */
-
-    background-color: var(--secondary-color); /* Colore Verde */
-
-    color: white; /* Testo Bianco */
-
-    border: none;
-
-    border-radius: 10px; /* Bordi più arrotondati */
-
-    font-size: 1.2em; /* Testo più grande */
-
-    font-weight: bold;
-
-    cursor: pointer;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-
-.badge {
-
-    background-color: var(--primary-color); /* Blu per Badge */
-
-    color: white;
-
-    padding: 4px 10px; /* Badge leggermente più grande */
-
-    border-radius: 15px;
-
-    font-size: 1em;
-
-}
-
-
-
-/* ========================================================= */
-
-/* 5. Modale Carrello (Aggiornamento Controlli) */
-
-/* ========================================================= */
-
-.modal-content {
-
-    /* ... (stili invariati) ... */
-
-    margin: 10vh auto; /* Abbassa leggermente il modale */
-
-}
-
-
-
-/* Elementi nel carrello */
-
-.cart-item {
-
-    /* ... (stili invariati) ... */
-
-}
-
-
-
-.cart-item-controls {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-}
-
-
-
-/* CONTROLLI +/- NEL MODALE MAGGIORI E PULITI */
-
-.cart-item-controls button {
-
-    background: var(--primary-color);
-
-    color: white;
-
-    border: none;
-
-    border-radius: 6px; /* Quadrato arrotondato */
-
-    width: 32px; /* Aumentato */
-
-    height: 32px; /* Aumentato */
-
-    font-size: 1.4em; /* Aumentato */
-
-    cursor: pointer;
-
-    transition: background-color 0.2s
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /*
