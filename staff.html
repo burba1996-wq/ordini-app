@@ -1,16 +1,43 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Ordini</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+function initStaff(){
+  const ordersContainer = document.getElementById("ordersContainer");
+  const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
-  <h1>Dashboard Ordini</h1>
-  <div id="ordersContainer"></div>
+  onSnapshot(q, snapshot => {
+    ordersContainer.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const id = docSnap.id;
 
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+      // Controllo che esistano campi fondamentali
+      if(!data.table || !data.dish) return;
+
+      const div = document.createElement("div");
+      div.className = "order";
+      div.innerHTML = `
+        <strong>Ordine #${id}</strong> - Tavolo: ${data.table}<br>
+        Piatto: ${data.dish} x ${data.qty}<br>
+        Stato: <span class="status">${data.status}</span><br>
+        <button class="btnStatus" data-id="${id}" data-status="preparazione">In preparazione</button>
+        <button class="btnStatus" data-id="${id}" data-status="completato">Completato</button>
+        <button class="btnStatus" data-id="${id}" data-status="annullato">Annulla</button>
+        <hr>
+      `;
+      ordersContainer.appendChild(div);
+    });
+
+    // Aggiorna lo stato
+    document.querySelectorAll(".btnStatus").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.getAttribute("data-id");
+        const status = btn.getAttribute("data-status");
+        try {
+          await updateDoc(doc(db, "orders", id), { status });
+        } catch(err) {
+          alert("Errore aggiornamento stato ❌");
+          console.error(err);
+        }
+      };
+    });
+  });
+}
+
