@@ -4,31 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Digitale | Ordina al Tavolo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css"> 
-</head>
+    
+    </head>
 <body>
 
-    <header>
-        <h1>BAR ORDER APP</h1>
-        <p>Stai ordinando dal Tavolo: <span id="table-id">CARICAMENTO...</span></p>
+    <header class="menu-header">
+        <div class="header-content">
+            <h1>BAR ORDER APP</h1>
+            <p>Tavolo: <span id="table-id">CARICAMENTO...</span></p>
+        </div>
         
-        <nav id="quick-links">
+        <nav id="quick-links" class="category-nav">
             </nav>
     </header>
 
     <main id="menu-container">
-        <h2>Caricamento Menu...</h2>
+        <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h2>Caricamento Menu...</h2>
+        </div>
     </main>
 
-    <section id="cart-container">
-        <div id="cart-inner">
-            <h2>Riepilogo Ordine</h2>
-            <ul id="cart-list">
-                </ul>
-            <p>Totale: € <span id="total-price">0.00</span></p>
-            <button id="send-order-btn" disabled>Invia Ordine</button>
-        </div>
+    <section id="cart-fixed-bar">
+        <button id="toggle-cart-btn">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="cart-item-count" class="badge">0</span> Articoli - € <span id="cart-fixed-total">0.00</span>
+        </button>
     </section>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2><i class="fas fa-clipboard-list"></i> Riepilogo Ordine</h2>
+            
+            <ul id="cart-list" class="cart-items-list">
+                </ul>
+
+            <div class="cart-summary">
+                <p>Totale: **€ <span id="total-price">0.00</span>**</p>
+            </div>
+            
+            <button id="send-order-btn" class="primary-btn" disabled>
+                <i class="fas fa-paper-plane"></i> Invia Ordine al Bar
+            </button>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
