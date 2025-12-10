@@ -1,55 +1,22 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff | Presa Ordini</title>
-    <link rel="stylesheet" href="style.css"> 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    </head>
-<body>
+<main id="menu-container" style="pointer-events: none; opacity: 0.5;">
+        </main>
 
-    <header class="menu-header">
-        <div class="header-content">
-            
-            <div class="header-main-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <h1>Presa Ordini Staff</h1>
-                <button id="logout-btn" class="simple-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button> 
-            </div>
-            
-            <div class="header-table-controls" style="width: 100%; text-align: center; padding: 10px 0;">
-                <div style="display: inline-block;">
-                    <label for="table-select" style="font-weight: bold; color: #343a40;">Seleziona Tavolo:</label>
-                    <select id="table-select" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc; min-width: 150px;">
-                        <option value="" disabled selected>-- Scegli Tavolo --</option>
-                    </select>
-                </div>
-                <p style="margin-top: 5px;">Tavolo Attuale: <span id="table-id" style="color: var(--delete-color); font-size: 1.2em; font-weight: bold;">NON SELEZIONATO</span></p>
-            </div>
-        </div>
-        
-        <nav id="quick-links" class="category-nav">
-             </nav>
-    </header>
-
-    <main id="menu-container" style="pointer-events: none; opacity: 0.5;">
-        <div class="loading-state">
-            <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
-        </div>
-    </main>
-
-    <section id="cart-container">
-        <div id="cart-inner">
-            <h2>Riepilogo Ordine (Tavolo <span id="cart-table-display">...</span>)</h2>
+    <section id="full-cart-details" class="hidden-cart">
+        <div id="cart-inner-full">
+            <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
             <ul id="cart-list">
-            </ul>
-            <p>Totale: € <span id="total-price">0.00</span></p>
-            <button id="send-order-btn" disabled>Invia Ordine</button>
+                </ul>
+            <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
+            <button id="send-order-btn" class="main-action-btn">Invia Ordine</button>
+            <button id="close-cart-btn" class="simple-btn">Chiudi e Continua Ordine</button>
         </div>
+    </section>
+    
+    <section id="cart-fixed-bar-staff" class="hidden">
+        <button id="toggle-full-cart-btn">
+            <i class="fas fa-shopping-cart"></i> 
+            Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
+        </button>
     </section>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
