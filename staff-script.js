@@ -145,7 +145,7 @@ function populateTableSelect() {
         cartItems = {};
         renderCart();
         
-        // Ricarica il menu (già caricato, ma meglio per consistenza)
+        // Ricarica il menu (che ora genera anche i link categoria)
         renderMenu(); 
     });
 }
@@ -171,10 +171,12 @@ async function loadMenu() {
 }
 
 /**
- * Renderizza l'intero menu in base ai dati memorizzati.
+ * Renderizza l'intero menu in base ai dati memorizzati e genera i link di navigazione.
+ * AGGIORNATA per generare i link di navigazione categoria con scroll.
  */
 function renderMenu() {
-    if (!mainContainer || menuData.length === 0) return;
+    const quickLinksNav = document.getElementById('quick-links');
+    if (!mainContainer || menuData.length === 0 || !quickLinksNav) return;
 
     // 1. Raggruppa gli elementi per categoria
     const groupedMenu = menuData.reduce((acc, item) => {
@@ -188,8 +190,13 @@ function renderMenu() {
 
     // 2. Genera l'HTML del menu
     mainContainer.innerHTML = '';
-    Object.keys(groupedMenu).sort().forEach(category => {
+    const categories = Object.keys(groupedMenu).sort();
+    
+    categories.forEach(category => {
         const section = document.createElement('section');
+        // Aggiunge un ID basato sulla categoria per lo scroll
+        section.id = 'cat-' + category.replace(/\s/g, '_'); 
+        
         section.innerHTML = `<h2>${category}</h2>`;
 
         const itemsContainer = document.createElement('div');
@@ -216,11 +223,49 @@ function renderMenu() {
         mainContainer.appendChild(section);
     });
 
-    // 3. Aggiunge gli ascoltatori di eventi
+    // 3. Aggiunge gli ascoltatori di eventi per l'aggiunta al carrello
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', handleAddToCart);
     });
+
+    // 4. Genera Link Categorie e aggiunge Listener
+    quickLinksNav.innerHTML = '';
+    categories.forEach(category => {
+        const linkBtn = document.createElement('button');
+        linkBtn.className = 'category-btn';
+        linkBtn.textContent = category;
+        linkBtn.setAttribute('data-target-id', 'cat-' + category.replace(/\s/g, '_'));
+        
+        linkBtn.addEventListener('click', (e) => {
+            const targetId = e.target.getAttribute('data-target-id');
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                // Scorre fino all'elemento con un offset per l'header fisso
+                window.scrollTo({
+                    top: targetElement.offsetTop - 150, // Offset di 150px per l'header
+                    behavior: 'smooth'
+                });
+            }
+        });
+        quickLinksNav.appendChild(linkBtn);
+    });
+    
+    // 5. Aggiunge il link rapido per il Carrello alla fine della barra di navigazione
+    const cartLinkBtn = document.createElement('button');
+    cartLinkBtn.className = 'category-btn cart-link-quick';
+    cartLinkBtn.innerHTML = '<i class="fas fa-receipt"></i> Riepilogo Ordine';
+    cartLinkBtn.addEventListener('click', () => {
+        // Scorre in fondo alla pagina dove si trova il riepilogo completo
+        window.scrollTo({
+            top: document.body.scrollHeight, 
+            behavior: 'smooth'
+        });
+        // Assicurati che il riepilogo sia visibile se si è su desktop
+        if (fullCartDetails) fullCartDetails.classList.remove('hidden-cart');
+    });
+    quickLinksNav.appendChild(cartLinkBtn);
 }
+
 
 // --- 5. GESTIONE CARRELLO E ORDINE (Logica Staff) ---
 
@@ -275,7 +320,7 @@ function renderCart() {
     if (cartItemsArray.length === 0) {
         cartList.innerHTML = '<li class="empty-cart-message">Il carrello è vuoto.</li>';
         sendOrderBtn.disabled = true;
-        cartFixedBarStaff.classList.add('hidden'); // Nasconde la barra fissa
+        if(cartFixedBarStaff) cartFixedBarStaff.classList.add('hidden'); // Nasconde la barra fissa
     } else {
         cartItemsArray.forEach(item => {
             const itemTotal = item.price * item.quantity;
@@ -303,7 +348,7 @@ function renderCart() {
             cartList.appendChild(listItem);
         });
         sendOrderBtn.disabled = false;
-        cartFixedBarStaff.classList.remove('hidden'); // Mostra la barra fissa
+        if(cartFixedBarStaff) cartFixedBarStaff.classList.remove('hidden'); // Mostra la barra fissa
     }
 
     // Aggiorna tutti gli elementi del totale e del conteggio
@@ -372,7 +417,7 @@ async function sendOrder(staffUser) {
  * Avvia l'applicazione Staff Order-Taking.
  */
 function initializeStaffApp(user) {
-    // 1. Carica il menu
+    // 1. Carica il menu (che ora genera anche i link categoria)
     loadMenu(); 
     
     // 2. Popola i tavoli
@@ -388,16 +433,28 @@ function initializeStaffApp(user) {
     // 5. Stato iniziale del carrello
     renderCart();
 
-    // 6. Gestione Apertura/Chiusura Carrello Completo (Simile a Modal)
+    // 6. Gestione Apertura/Chiusura Carrello Completo (Logica adattata per Staff)
     if (toggleFullCartBtn && closeCartBtn && fullCartDetails) {
         // Funzione per mostrare il carrello completo
         toggleFullCartBtn.addEventListener('click', () => {
-            fullCartDetails.classList.remove('hidden-cart');
-            fullCartDetails.scrollTop = 0; // Vai in cima al carrello (utile su mobile)
-            document.body.classList.add('no-scroll'); // Blocca lo scroll del body su mobile
+             // 768px è un breakpoint standard per distinguere desktop/mobile
+            if (window.innerWidth <= 768) { 
+                // Su mobile: Apre come modal (slide-up)
+                fullCartDetails.classList.remove('hidden-cart');
+                document.body.classList.add('no-scroll');
+            } else {
+                // Su desktop: Scorre in fondo alla pagina
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+                // Rimuove la classe 'hidden-cart' per assicurare che sia visibile
+                fullCartDetails.classList.remove('hidden-cart');
+            }
+            fullCartDetails.scrollTop = 0; 
         });
 
-        // Funzione per nascondere il carrello completo
+        // Funzione per nascondere il carrello completo (usata principalmente su mobile o dal pulsante)
         closeCartBtn.addEventListener('click', () => {
             fullCartDetails.classList.add('hidden-cart');
             document.body.classList.remove('no-scroll');
