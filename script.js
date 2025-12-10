@@ -223,7 +223,7 @@ function renderCategoryNavigation(groupedItems) {
         // COLLEGA L'EVENTO DI SCROLL
         button.addEventListener('click', () => {
             const target = document.getElementById(cleanId);
-            if (target) {
+            if (target) 
                 // Scroll fluido alla sezione con un offset
                 window.scrollTo({
                     // target.offsetTop - 100 tiene conto dell'altezza dell'header fisso
