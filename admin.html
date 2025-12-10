@@ -95,7 +95,49 @@
         .complete-btn:hover {
             background-color: #1e7e34;
         }
+/* Nuovo Stile: Contenitore Filtri */
+    #order-filters {
+        display: flex;
+        justify-content: center;
+        margin: 20px auto;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+        max-width: 800px;
+    }
 
+    .filter-btn {
+        padding: 10px 20px;
+        margin: 0 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f8f8f8;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .filter-btn.active {
+        background-color: #dc3545; /* Rosso Admin */
+        color: white;
+        border-color: #dc3545;
+    }
+    
+    .order-card.completed { 
+        border-left: 8px solid #007bff; /* Blu per ordini completati */
+        opacity: 0.7; 
+    }
+</style>
+
+<main>
+    <div id="order-filters">
+        <button class="filter-btn active" data-status="pending">Ordini In Attesa</button>
+        <button class="filter-btn" data-status="completed">Ordini Completati</button>
+    </div>
+    
+    <div id="orders-container">
+        <h2 style="text-align: center;">Caricamento Ordini...</h2>
+    </div>
+</main>
         /* Stili di Stato (Visualizzazione importante!) */
         .order-card.pending { border-left: 8px solid #ffc107; } /* Giallo - Urgente */
         .order-card.ready { border-left: 8px solid #007bff; } /* Blu - Pronto per il ritiro/servizio */
