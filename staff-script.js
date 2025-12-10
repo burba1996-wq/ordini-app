@@ -112,7 +112,8 @@ function handleLogout() {
 // --- 4. GESTIONE TAVOLI E MENU STAFF ---
 
 /**
- * Popola il dropdown di selezione tavolo.
+ * Popola il dropdown di selezione tavolo e inizializza l'interfaccia al primo tavolo.
+ * FIX: Aggiunto dispatchEvent('change') per forzare l'inizializzazione del Tavolo 1.
  */
 function populateTableSelect() {
     const tableSelect = document.getElementById('table-select');
@@ -127,7 +128,9 @@ function populateTableSelect() {
     }
 
     tableSelect.addEventListener('change', (e) => {
-        currentTableId = e.target.value;
+        const selectedValue = e.target.value;
+        
+        currentTableId = selectedValue;
         tableIdDisplay.textContent = currentTableId;
         // Aggiorna il display del tavolo nel riepilogo completo
         if (cartTableDisplayFull) cartTableDisplayFull.textContent = currentTableId; 
@@ -135,10 +138,11 @@ function populateTableSelect() {
         // Sblocca l'interfaccia menu
         mainContainer.style.pointerEvents = 'auto';
         mainContainer.style.opacity = '1';
-        // Controllo aggiuntivo per nascondere il messaggio solo se esiste
-        const loadingMessage = mainContainer.querySelector('h2');
-        if (loadingMessage) {
-            loadingMessage.style.display = 'none'; 
+        
+        const loadingState = mainContainer.querySelector('.loading-state');
+        if (loadingState) {
+             // Nasconde l'intero blocco di stato di caricamento/istruzione
+             loadingState.style.display = 'none'; 
         }
         
         // Reset carrello quando si cambia tavolo
@@ -148,6 +152,15 @@ function populateTableSelect() {
         // Ricarica il menu (che ora genera anche i link categoria)
         renderMenu(); 
     });
+    
+    // *** FIX PER IL TAVOLO 1 NON FUNZIONANTE AL CARICAMENTO ***
+    if (tableSelect.options.length > 0) {
+        // Forza il valore a TAVOLO_1 (che è il default HTML)
+        tableSelect.value = 'TAVOLO_1'; 
+        // Simula l'evento 'change' per attivare il listener e inizializzare currentTableId, UI e carrello.
+        const event = new Event('change');
+        tableSelect.dispatchEvent(event);
+    }
 }
 
 /**
