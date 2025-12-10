@@ -3,16 +3,16 @@
 /* ========================================================= */
 :root {
     /* NUOVI COLORI: Blu Moderno e Verde/Giallo per Accenti */
-    --primary-color: #007bff; /* Blu Moderno per intestazioni e accenti principali */
-    --secondary-color: #28a745; /* Verde per azioni positive (Aggiungi, Invia) */
-    --text-dark: #343a40; /* Grigio Scuro */
-    --bg-light: #f4f6f9; /* Sfondo Grigio Chiarissimo */
+    --primary-color: #007bff;
+    --secondary-color: #28a745;
+    --text-dark: #343a40;
+    --bg-light: #f4f6f9;
     --card-bg: #ffffff;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Ombreggiatura più morbida */
-    --delete-color: #dc3545; /* Rosso per eliminare */
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --delete-color: #dc3545;
     
-    /* MODIFICATO: Variabile per l'altezza totale di header + nav (Ridotto da 110px) */
-    --header-height: 90px; 
+    /* MODIFICA 1: Ulteriore riduzione dell'altezza totale di compensazione */
+    --header-height: 80px; /* Ridotto da 90px a 80px */ 
 }
 
 /* Importa un font moderno se non è già nel tuo HTML (ad esempio via Google Fonts) */
@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
 */
 body {
-    font-family: 'Roboto', Arial, sans-serif; /* Font più moderno */
+    font-family: 'Roboto', Arial, sans-serif;
     background-color: var(--bg-light);
     color: var(--text-dark);
     line-height: 1.6;
@@ -37,12 +37,12 @@ a {
 /* 2. Header & Navigazione (Fissi e Compatti) */
 /* ========================================================= */
 .menu-header {
-    background-color: var(--card-bg); /* Sfondo Header chiaro */
-    color: var(--text-dark); /* Testo Header scuro */
-    /* MODIFICATO: Ridotto il padding verticale per diminuire l'altezza */
-    padding: 8px 0; /* Era 10px */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Ombra leggera */
-    position: fixed; /* Fissa in alto */
+    background-color: var(--card-bg);
+    color: var(--text-dark);
+    /* MODIFICA 1: Padding ulteriormente ridotto per snellire */
+    padding: 6px 0; /* Ridotto da 8px a 6px */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -57,10 +57,11 @@ a {
 }
 
 .menu-header h1 {
-    font-size: 1.5em; /* Titolo più piccolo e compatto */
+    /* Manteniamo 1.5em per leggibilità, ma possiamo ridurre se necessario */
+    font-size: 1.5em; 
     font-weight: 700;
     color: var(--primary-color);
-    margin: 0; /* Rimuovi margini predefiniti */
+    margin: 0;
 }
 
 /* Navigazione Categorie (Quick Links) */
@@ -68,24 +69,25 @@ a {
     display: flex;
     overflow-x: auto; 
     white-space: nowrap;
-    padding: 10px 0;
-    background-color: var(--card-bg); /* Navigazione Chiara */
+    /* MODIFICA 1: Padding verticale ridotto */
+    padding: 8px 0; /* Ridotto da 10px a 8px */
+    background-color: var(--card-bg);
     border-bottom: 1px solid #eee;
     
-    /* Blocco la nav subito sotto l'header principale */
     position: sticky;
-    /* MODIFICATO: Adattato il top alla nuova altezza ridotta dell'header */
-    top: 48px; /* Era 60px */
+    /* MODIFICA 1: Adattato il top alla nuova altezza (l'header è ora circa 44px) */
+    top: 40px; /* Regolato da 48px a 40px */
     z-index: 900;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .category-btn {
     display: inline-block;
-    padding: 8px 18px; /* Più imbottitura orizzontale */
+    /* Manteniamo questo padding per le dimensioni dei pulsanti */
+    padding: 8px 18px; 
     margin: 0 5px;
-    border-radius: 25px; /* Bordi più arrotondati (Pill shape) */
-    background-color: var(--bg-light); /* Sfondo bottone grigio chiaro */
+    border-radius: 25px;
+    background-color: var(--bg-light);
     color: var(--text-dark);
     font-weight: 500;
     cursor: pointer;
@@ -94,16 +96,16 @@ a {
 }
 
 .category-btn:hover, .category-btn.active {
-    background-color: var(--primary-color); /* Blu acceso quando attivo */
+    background-color: var(--primary-color);
     color: white;
 }
 
 /* ========================================================= */
-/* 3. Menu Items & Container (Carte pulite) */
+/* 3. Menu Items & Container (Carte pulite e snelle) */
 /* ========================================================= */
 #menu-container {
     max-width: 900px;
-    /* UTILIZZA LA NUOVA VARIABILE --header-height RIDOTTA */
+    /* UTILIZZA LA NUOVA VARIABILE --header-height ULTERIORMENTE RIDOTTA */
     padding-top: var(--header-height); 
     margin: 0 auto;
     padding-left: 20px;
@@ -123,10 +125,11 @@ a {
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    padding: 18px; /* Più spaziatura interna */
-    margin-bottom: 12px;
-    border-radius: 12px; /* Bordi più arrotondati */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    /* MODIFICA 2: Ridotto il padding interno della card per snellire */
+    padding: 14px 18px; /* Ridotto da 18px */
+    margin-bottom: 10px; /* Ridotto da 12px */
+    border-radius: 10px; /* Ridotto da 12px */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Ombra più leggera e piccola */
 }
 
 /* ========================================================== */
@@ -141,8 +144,7 @@ a {
     background-color: var(--secondary-color); 
     z-index: 1000;
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
-    /* MODIFICATO: Aumento padding per ingrandire la barra */
-    padding: 15px 15px; /* Era 10px */
+    padding: 15px 15px; 
     text-align: center;
     
 }
@@ -152,8 +154,7 @@ a {
     background: none;
     border: none;
     color: white;
-    /* MODIFICATO: Aumento della dimensione del testo */
-    font-size: 1.3rem; /* Era 1.1rem */
+    font-size: 1.3rem;
     font-weight: 700;
     padding: 0;
     display: flex;
@@ -360,4 +361,23 @@ a {
     color: var(--text-dark); /* Totale non in rosso, ma scuro */
 }
 .order-footer strong {
-    color: var(--
+    color: var(--delete-color); /* Totale in rosso per maggiore enfasi */
+}
+
+/* Pulsante Completa */
+.complete-btn {
+    padding: 10px 18px;
+    background-color: var(--secondary-color); /* Verde */
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+.complete-btn:hover {
+    background-color: #1e7e34;
+}
+
+.completed-label {
+    font-size: 0.9em;
+    color: var(--primary-color);
+    font-weight: 600;
+}
