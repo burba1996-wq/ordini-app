@@ -8,121 +8,197 @@ const firebaseConfig = {
   appId: "1:250958312970:web:9a7929c07e8c4fa352d1f3",
   measurementId: "G-GTQS2S4GNF"
 };
-// Inizializza Firebase
+// Inizializzazione Firebase
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- 2. VARIABILI GLOBALI ---
-const ordersContainer = document.getElementById('orders-container');
+// ====================================================================
+// 2. VARIABILI E GESTIONE AUTENTICAZIONE
+// ====================================================================
 
-// --- 3. FUNZIONI LOGICHE ---
+// --- Funzioni di Login/Logout ---
 
-// Formatta la data per una migliore leggibilità
-function formatTimestamp(timestamp) {
-    if (!timestamp || !timestamp.toDate) return 'N/D';
-    return timestamp.toDate().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+/**
+ * Gestisce il login per la pagina admin-login.html
+ */
+function handleAdminLogin() {
+    // Si attiva solo se siamo sulla pagina di login Admin
+    const emailInput = document.getElementById('admin-email');
+    const passwordInput = document.getElementById('admin-password');
+    const loginBtn = document.getElementById('admin-login-btn');
+    const errorMessage = document.getElementById('error-message');
+
+    if (!emailInput || !loginBtn) return; // Non siamo sulla pagina di login
+
+    loginBtn.addEventListener('click', () => {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        
+        errorMessage.textContent = '';
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Accesso...';
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                // Successo, reindirizzamento gestito da onAuthStateChanged
+            })
+            .catch(error => {
+                console.error("Errore di Login Admin: ", error.message);
+                errorMessage.textContent = 'Accesso negato. Credenziali non valide.';
+            })
+            .finally(() => {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Accedi';
+            });
+    });
 }
 
-// Funzione per aggiornare lo stato di un ordine su Firestore
+/**
+ * Funzione di Logout (Usata su admin.html)
+ */
+function handleAdminLogout() {
+    auth.signOut().then(() => {
+        // Reindirizzamento gestito da onAuthStateChanged
+    }).catch(error => {
+        console.error("Errore di Logout: ", error);
+        alert("Errore durante il logout.");
+    });
+}
+
+// --- Listener Globale di Stato Autenticazione ---
+auth.onAuthStateChanged(user => {
+    const isAdminPage = window.location.pathname.endsWith('admin.html');
+    const isAdminLoginPage = window.location.pathname.endsWith('admin-login.html');
+
+    if (user) {
+        // Utente autenticato
+        if (isAdminLoginPage) {
+            // Se siamo sulla pagina di login ma l'utente è loggato, reindirizza alla dashboard
+            window.location.href = 'admin.html';
+        } else if (isAdminPage) {
+            // Se siamo sulla dashboard e l'utente è loggato, avvia l'app
+            initializeAdminDashboard(user);
+        }
+    } else {
+        // Utente NON autenticato
+        if (isAdminPage) {
+            // Se siamo sulla dashboard ma non siamo loggati, reindirizza al login
+            window.location.href = 'admin-login.html';
+        }
+        // Se siamo sulla pagina di login, non facciamo nulla (aspettiamo il login)
+    }
+});
+
+
+// ====================================================================
+// 3. LOGICA DASHBOARD ADMIN (Attivata dopo il Login)
+// ====================================================================
+
+const ordersContainer = document.getElementById('orders-container');
+
+/**
+ * Funzione principale che avvia la dashboard dopo il login.
+ */
+function initializeAdminDashboard(user) {
+    console.log("Dashboard Admin avviata per:", user.email);
+
+    // Collega l'evento di Logout
+    const logoutBtn = document.getElementById('admin-logout-btn');
+    if(logoutBtn) logoutBtn.addEventListener('click', handleAdminLogout);
+    
+    // Avvia l'ascolto degli ordini in tempo reale
+    listenForNewOrders();
+}
+
+/**
+ * Ascolta in tempo reale gli ordini da Firestore e li visualizza.
+ */
+function listenForNewOrders() {
+    // Query: Ordina per timestamp e prende solo gli ordini 'pending' (in attesa)
+    db.collection('orders')
+      .where('status', '==', 'pending')
+      .orderBy('timestamp', 'asc') 
+      .onSnapshot(snapshot => {
+        ordersContainer.innerHTML = ''; // Pulisce il contenitore
+
+        if (snapshot.empty) {
+            ordersContainer.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 30px;">Nessun nuovo ordine in attesa.</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const order = doc.data();
+            const orderId = doc.id;
+            renderOrderCard(order, orderId);
+        });
+    }, error => {
+        console.error("Errore nel ricevere gli ordini: ", error);
+        ordersContainer.innerHTML = '<p style="color:red; text-align: center;">Errore nel caricamento degli ordini.</p>';
+    });
+}
+
+/**
+ * Crea la card HTML per un singolo ordine.
+ */
+function renderOrderCard(order, orderId) {
+    const card = document.createElement('div');
+    card.className = 'order-card pending'; // Usa la classe CSS 'pending'
+    
+    // Formatta il timestamp (se esiste)
+    const time = order.timestamp ? order.timestamp.toDate().toLocaleTimeString('it-IT') : 'Ora Sconosciuta';
+    
+    // Contenuto dell'ordine
+    const itemsHtml = order.items.map(item => 
+        `<li>${item.quantity}x ${item.name} (€${(item.quantity * item.price).toFixed(2)})</li>`
+    ).join('');
+    
+    card.innerHTML = `
+        <h3>Tavolo: ${order.tableId} <span class="order-time">${time}</span></h3>
+        <p>Staff: ${order.staffEmail || 'Cliente QR'}</p>
+        
+        <ul class="order-items">${itemsHtml}</ul>
+        
+        <div class="order-footer">
+            <strong>TOTALE: €${order.total.toFixed(2)}</strong>
+            <button class="complete-btn" data-id="${orderId}">Completa Ordine</button>
+        </div>
+    `;
+
+    // Aggiungi l'event listener al pulsante
+    card.querySelector('.complete-btn').addEventListener('click', () => {
+        updateOrderStatus(orderId, 'completed');
+    });
+
+    ordersContainer.appendChild(card);
+}
+
+/**
+ * Aggiorna lo stato di un ordine su Firestore.
+ */
 async function updateOrderStatus(orderId, newStatus) {
     try {
         await db.collection('orders').doc(orderId).update({
-            status: newStatus
+            status: newStatus,
+            completionTime: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log(`Ordine ${orderId} aggiornato a ${newStatus}`);
+        console.log(`Ordine ${orderId} segnato come ${newStatus}.`);
+        // La UI si aggiornerà automaticamente grazie a onSnapshot
     } catch (error) {
-        console.error("Errore nell'aggiornamento dello stato: ", error);
-        alert("Errore nell'aggiornamento dello stato dell'ordine.");
+        console.error("Errore nell'aggiornamento dello stato:", error);
+        alert("Impossibile aggiornare lo stato dell'ordine.");
     }
 }
 
-// Visualizza gli ordini nell'interfaccia HTML
-function renderOrders(orders) {
-    ordersContainer.innerHTML = ''; // Pulisce il container
 
-    if (orders.length === 0) {
-        ordersContainer.innerHTML = '<h2>Nessun ordine attivo.</h2>';
-        return;
-    }
-
-    // Ordina gli ordini: prima i 'pending', poi i 'ready', infine i 'served'
-    orders.sort((a, b) => {
-        const statusOrder = { 'pending': 1, 'ready': 2, 'served': 3 };
-        return statusOrder[a.status] - statusOrder[b.status];
-    });
-
-    orders.forEach(order => {
-        const orderCard = document.createElement('div');
-        // Aggiunge la classe in base allo stato (per lo stile colorato)
-        orderCard.className = `order-card ${order.status}`; 
-
-        let itemsList = order.items.map(item => 
-            `<li>${item.quantity} x ${item.name} (€${item.price.toFixed(2)})</li>`
-        ).join('');
-        
-        let buttons = '';
-
-        if (order.status === 'pending') {
-            buttons += `<button class="status-button btn-ready" data-id="${order.id}" data-status="ready">Segna come Pronto</button>`;
-        }
-        if (order.status !== 'served') {
-             buttons += `<button class="status-button btn-served" data-id="${order.id}" data-status="served">Segna come Servito</button>`;
-        }
-
-
-        orderCard.innerHTML = `
-            <h3>Tavolo: ${order.tableId}</h3>
-            <p><strong>Ora:</strong> ${formatTimestamp(order.timestamp)}</p>
-            <p><strong>Stato Attuale:</strong> ${order.status.toUpperCase()}</p>
-            <p><strong>Totale:</strong> €${order.total.toFixed(2)}</p>
-            <h4>Articoli Ordinati:</h4>
-            <ul class="order-items">${itemsList}</ul>
-            <div class="actions">${buttons}</div>
-        `;
-        
-        ordersContainer.appendChild(orderCard);
-    });
-
-    // Aggiungi gli event listener DOPO che gli elementi sono stati creati
-    document.querySelectorAll('.status-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const orderId = e.target.dataset.id;
-            const newStatus = e.target.dataset.status;
-            if (confirm(`Sei sicuro di voler cambiare lo stato dell'Ordine ${orderId} a "${newStatus.toUpperCase()}"?`)) {
-                updateOrderStatus(orderId, newStatus);
-            }
-        });
-    });
-}
-
-// Ascolta gli aggiornamenti in tempo reale dalla raccolta 'orders'
-function listenForOrders() {
-    // onSnapshot() mantiene una connessione aperta con Firestore
-    // e aggiorna la UI ogni volta che i dati cambiano.
-    db.collection('orders')
-        // Ordina per timestamp in modo da vedere i più recenti in alto
-        .orderBy('timestamp', 'desc')
-        .limit(20) // Mostra solo gli ultimi 20 ordini
-        .onSnapshot((snapshot) => {
-            const orders = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            
-            console.log("Nuovi ordini ricevuti/aggiornati:", orders);
-            renderOrders(orders);
-        }, (error) => {
-            console.error("Errore nell'ascolto degli ordini: ", error);
-            ordersContainer.innerHTML = '<p style="color:red;">Errore di connessione a Firestore.</p>';
-        });
-        
-        // Per una migliore gestione, potresti voler filtrare solo gli ordini 'pending' e 'ready',
-        // ad esempio aggiungendo .where('status', '!=', 'served')
-}
-
-// --- 4. INIZIALIZZAZIONE ---
+// ====================================================================
+// 4. INIZIALIZZAZIONE DOM
+// ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Avvia l'ascolto degli ordini all'avvio dell'app Admin
-    listenForOrders(); 
+    // Se siamo sulla pagina di login Admin, attiva il gestore login
+    if (window.location.pathname.endsWith('admin-login.html')) {
+        handleAdminLogin();
+    }
+    // L'avvio della dashboard su admin.html è gestito da onAuthStateChanged
 });
