@@ -15,8 +15,9 @@ firebaseConfig = {
   measurementId: "G-GTQS2S4GNF"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const analytics = getAnalytics(app)
 
 /* ----------------- MENU (modificabile) ----------------- */
 const MENU = [
@@ -178,3 +179,4 @@ function initStaffPage(){
     });
   });
 }
+
