@@ -26,7 +26,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // 3️⃣ CONTROLLA SE SIAMO SU STAFF O CLIENTE
-if (location.pathname.endsWith("staff.html")) {
+if (location.pathname.includes("staff.html")) {
   initStaff();
 } else {
   initClient();
@@ -98,7 +98,9 @@ function initStaff(){
       `;
       ordersContainer.appendChild(div);
     });
-
+    
+<div id="ordersContainer"></div>
+             
     // Aggiorna lo stato
     document.querySelectorAll(".btnStatus").forEach(btn=>{
       btn.onclick = async ()=>{
@@ -114,3 +116,4 @@ function initStaff(){
     });
   });
 }
+
