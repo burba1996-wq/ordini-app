@@ -111,18 +111,18 @@ function populateTableSelect() {
     const tableSelect = document.getElementById('table-select');
     if (!tableSelect) return;
 
-    // Esempio: numeri di tavolo da 1 a 10
+    // Esempio: numeri di tavolo da 1 a 40
     for (let i = 1; i <= 40; i++) {
         const option = document.createElement('option');
         option.value = `TAVOLO_${i}`;
-        option.textContent = `Tavolo ${i}`;
+        option.textContent = `${i}`;
         tableSelect.appendChild(option);
     }
 
     tableSelect.addEventListener('change', (e) => {
         currentTableId = e.target.value;
-        tableIdDisplay.textContent = currentTableId;
-        cartTableDisplay.textContent = currentTableId;
+        tableIdDisplay.textContent = displayId;
+        cartTableDisplay.textContent = displayId;
         
         // Sblocca l'interfaccia menu
         mainContainer.style.pointerEvents = 'auto';
