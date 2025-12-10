@@ -131,7 +131,8 @@ function attachCartEventListeners() {
         } else if (button.classList.contains('cart-decrement')) {
             updateQuantity(itemId, -1);
         } else if (button.classList.contains('cart-remove')) {
-            removeItem(itemId);
+            // Nota: Se usi solo +/- (come nel CSS), questo blocco non è necessario
+            removeItem(itemId); 
         }
     };
 }
@@ -172,7 +173,7 @@ function renderCart() {
                 <button class="cart-btn cart-decrement minus-btn" data-id="${item.id}">-</button>
                 <span class="cart-qty">${item.quantity}</span>
                 <button class="cart-btn cart-increment" data-id="${item.id}">+</button>
-                </div>
+            </div>
         `;
         cartList.appendChild(li);
     });
@@ -193,7 +194,6 @@ function renderCart() {
  * Raggruppa un array piatto di articoli per il campo 'category'.
  */
 function groupItemsByCategory(items) {
-    // ... la tua logica è corretta ...
     return items.reduce((acc, item) => {
         const category = item.category || 'Altro';
         if (!acc[category]) {
@@ -213,13 +213,192 @@ function renderCategoryNavigation(groupedItems) {
     const sortedCategories = Object.keys(groupedItems).sort();
 
     sortedCategories.forEach(category => {
+        // Funzione per creare un ID valido per l'ancoraggio
         const cleanId = `category-${category.replace(/[^a-zA-Z0-9]+/g, '_').toLowerCase()}`;
         
         const button = document.createElement('button');
         button.className = 'category-btn';
         button.textContent = category;
         
-        // Collega l'evento di scroll all'ID della sezione
+        // COLLEGA L'EVENTO DI SCROLL
         button.addEventListener('click', () => {
             const target = document.getElementById(cleanId);
-            if (target
+            if (target) {
+                // Scroll fluido alla sezione con un offset
+                window.scrollTo({
+                    // target.offsetTop - 100 tiene conto dell'altezza dell'header fisso
+                    top: target.offsetTop - 100, 
+                    behavior: 'smooth'
+                });
+            }
+        });
+        navQuickLinks.appendChild(button);
+    });
+}
+
+
+/**
+ * Visualizza il menu raggruppato in sezioni HTML.
+ * @param {object} groupedItems - Il menu raggruppato per categoria.
+ */
+function renderMenu(groupedItems) {
+    menuContainer.innerHTML = '';
+    const sortedCategories = Object.keys(groupedItems).sort();
+
+    sortedCategories.forEach(category => {
+        const categorySection = document.createElement('section');
+        const cleanId = `category-${category.replace(/[^a-zA-Z0-9]+/g, '_').toLowerCase()}`;
+        categorySection.id = cleanId;
+        categorySection.className = 'menu-category'; 
+        categorySection.innerHTML = `<h2>${category}</h2>`;
+
+        const itemsListDiv = document.createElement('div');
+        itemsListDiv.className = 'category-items-list'; 
+
+        groupedItems[category].forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'menu-item-card';
+
+            // Usiamo il layout Card moderna con le icone
+            div.innerHTML = `
+                <div class="item-info">
+                    <h3>${item.name}</h3>
+                    <p>€${item.price.toFixed(2)}</p>
+                </div>
+                <div class="item-controls">
+                    <button class="add-to-cart-btn" data-id="${item.id}">
+                        <i class="fas fa-plus"></i> Aggiungi
+                    </button>
+                </div>
+            `;
+
+            // Aggiunge l'evento al pulsante "Aggiungi" 
+            const btn = div.querySelector('.add-to-cart-btn');
+            btn.addEventListener('click', () => {
+                addToCart({
+                    id: item.id,
+                    name: item.name,
+                    price: parseFloat(item.price) // Conversione sicura
+                });
+            });
+
+            itemsListDiv.appendChild(div);
+        });
+
+        categorySection.appendChild(itemsListDiv);
+        menuContainer.appendChild(categorySection);
+    });
+}
+
+/**
+ * Legge il menu da Firestore, raggruppa, renderizza Menu e Navigazione.
+ */
+async function fetchMenu() {
+    menuContainer.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><h2>Caricamento Menu...</h2></div>';
+    try {
+        // IMPORTANTE: Necessita di un indice in Firestore se usi .orderBy('category')
+        const snapshot = await db.collection('menu').orderBy('category').get(); 
+        
+        if (snapshot.empty) {
+            menuContainer.innerHTML = '<p class="error-message">Nessun articolo trovato nel menu.</p>';
+            return;
+        }
+
+        const menuItems = snapshot.docs.map(doc => ({
+            id: doc.id,
+            price: parseFloat(doc.data().price),
+            ...doc.data()
+        }));
+
+        menuStructure = groupItemsByCategory(menuItems); 
+        
+        renderCategoryNavigation(menuStructure); // 1. Renderizza la Navigazione Veloce
+        renderMenu(menuStructure); // 2. Renderizza il Menu
+
+    } catch (error) {
+        console.error("Errore nel caricamento del menu: ", error);
+        // Visualizza l'errore se la connessione fallisce
+        menuContainer.innerHTML = '<p class="error-message">Impossibile caricare il menu. Controlla la connessione o le regole di Firebase. (Vedi console F12 per dettagli)</p>';
+    }
+}
+
+
+/**
+ * Invia l'ordine a Firestore.
+ */
+async function sendOrder() {
+    if (cart.length === 0) {
+        alert("Il carrello è vuoto!");
+        return;
+    }
+
+    sendOrderBtn.disabled = true;
+    sendOrderBtn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Invio in corso...';
+    
+    // Crea una versione pulita degli articoli del carrello per il database
+    const itemsToSave = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+    }));
+    
+    const orderData = {
+        tableId: tableId,
+        items: itemsToSave,
+        total: parseFloat(totalPriceSpan.textContent),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'pending' 
+    };
+    
+    try {
+        await db.collection('orders').add(orderData);
+        
+        // Chiude la modale dopo l'invio
+        toggleCartModal(false); 
+        alert(`Ordine inviato con successo al Tavolo ${tableId}! Sarai servito a breve.`);
+        
+        // Pulisce lo stato
+        cart = [];
+        renderCart(); 
+
+    } catch (error) {
+        console.error("Errore nell'invio dell'ordine: ", error);
+        alert("Si è verificato un errore durante l'invio dell'ordine.");
+    } finally {
+        sendOrderBtn.disabled = false;
+        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine al Bar';
+    }
+}
+
+// ====================================================================
+// 5. INIZIALIZZAZIONE
+// ====================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Legge il tavolo dall'URL
+    getTableIdFromUrl();
+    
+    // 2. Carica e visualizza il menu
+    fetchMenu();
+    
+    // 3. Inizializza la visualizzazione del carrello vuoto
+    renderCart(); 
+
+    // 4. Collega i listener di base
+    sendOrderBtn.addEventListener('click', sendOrder);
+    
+    // 5. Collega il listener di delegation per il carrello interattivo
+    attachCartEventListeners(); 
+
+    // 6. Listener per la Modale Carrello 
+    toggleCartBtn.addEventListener('click', () => toggleCartModal(true));
+    closeCartBtn.addEventListener('click', () => toggleCartModal(false));
+    
+    // Chiudi il modale cliccando fuori
+    window.addEventListener('click', (event) => {
+        if (event.target === cartModal) {
+            toggleCartModal(false);
+        }
+    });
+});
