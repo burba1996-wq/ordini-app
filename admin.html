@@ -20,30 +20,34 @@
             </div>
         </header>
 
-        <div id="order-filters" style="display: none;"> 
-            <button class="filter-btn active" data-status="pending">
-                <i class="fas fa-clock"></i> In Attesa
+        <div id="order-filters"> 
+            <button class="filter-btn active" data-view="active">
+                <i class="fas fa-grip-horizontal"></i> Tavoli Attivi
             </button>
-            <button class="filter-btn" data-status="executed">
-                <i class="fas fa-utensils"></i> Eseguiti
-            </button>
-            <button class="filter-btn" data-status="completed">
-                <i class="fas fa-check-circle"></i> Storico (Pagati)
+            <button class="filter-btn" data-view="history"> 
+                <i class="fas fa-history"></i> Storico Ordini
             </button>
         </div>
         
-        <section id="admin-dashboard-layout">
-            
-            <div id="tables-grid">
-                </div>
+        <div id="dynamic-content-area">
 
-            <div id="order-details" class="order-card-detail">
-                <p class="empty-message">Seleziona un tavolo con un ordine attivo per visualizzare i dettagli.</p>
-            </div>
+            <section id="admin-dashboard-layout" class="active-view">
+                
+                <div id="tables-grid">
+                    </div>
+
+                <div id="order-details" class="order-card-detail">
+                    <p class="empty-message">Seleziona un tavolo con un ordine attivo per visualizzare i dettagli.</p>
+                </div>
+                
+            </section>
             
-        </section>
+            <section id="orders-container-history" class="history-view hidden">
+                 <p class="empty-message">Caricamento storico...</p>
+            </section>
         
-        </main>
+        </div>
+    </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script> 
