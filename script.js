@@ -23,26 +23,27 @@ const db = firebase.firestore();
 
 // Elementi DOM (Cache dei selettori)
 const menuContainer = document.getElementById('menu-container');
-const cartList = document.getElementById('cart-list');
-const totalPriceSpan = document.getElementById('total-price');
-const sendOrderBtn = document.getElementById('send-order-btn');
 const tableIdSpan = document.getElementById('table-id');
 const navQuickLinks = document.getElementById('quick-links');
 
-// NUOVI SELETTORI PER LA MODALE CARRELLO
-const cartModal = document.getElementById('cart-modal');
+// NUOVI SELETTORI PER LA MODALE CARRELLO (Corretti)
+const cartModal = document.getElementById('cartModal'); // ID corretto da HTML
 const toggleCartBtn = document.getElementById('toggle-cart-btn');
-const closeCartBtn = document.querySelector('#cart-modal .close-btn');
+const closeCartBtn = document.querySelector('#cartModal .close-btn'); // ID corretto da HTML
+const cartList = document.getElementById('cart-items-list'); // ID corretto da HTML
 const cartItemCount = document.getElementById('cart-item-count');
 const cartFixedTotal = document.getElementById('cart-fixed-total');
+const cartTotalModal = document.getElementById('cart-total-modal'); // ID corretto da HTML
+const sendOrderBtn = document.getElementById('send-order-btn'); // Già presente ma ri-definito per chiarezza
+const orderNotesInput = document.getElementById('order-notes'); // NUOVO SELETTORE NOTE
 
 // Stato dell'applicazione
 let cart = []; // Array per contenere gli articoli nel carrello
-let tableId = 'Tavolo non trovato'; // Modificato il default per chiarezza
-let menuStructure = {}; // Salverà la struttura del menu raggruppato
-let activeOrderId = null; // ID dell'ordine attivo per questo tavolo
-let unsubscribeOrderListener = null; // Funzione per rimuovere il listener
-let hasActiveOrder = false; // Flag per controllare se esiste un ordine attivo
+let tableId = 'Tavolo non trovato';
+let menuStructure = {};
+let activeOrderId = null;
+let unsubscribeOrderListener = null;
+let hasActiveOrder = false;
 
 // ====================================================================
 // 3. LOGICA DI CARRELLO E STATO
@@ -58,16 +59,19 @@ function getTableIdFromUrl() {
         tableId = id;
     }
     tableIdSpan.textContent = tableId;
+    // Aggiorna anche l'ID del tavolo nel modale
+    document.getElementById('modal-table-id').textContent = tableId; 
 }
 
 /**
  * Gestisce l'apertura e la chiusura della Modale Carrello.
+ * CORREZIONE: Usa 'flex' per mostrare e 'none' per nascondere.
  */
 function toggleCartModal(show) {
     if (show) {
-        // Aggiorna il carrello prima di aprirlo
+        // Aggiorna il carrello prima di aprirlo per assicurare i dati freschi
         renderCart(); 
-        cartModal.style.display = 'block';
+        cartModal.style.display = 'flex'; // Usa 'flex' per centrare (come da CSS)
         document.body.style.overflow = 'hidden';
     } else {
         cartModal.style.display = 'none';
@@ -102,6 +106,9 @@ function addToCart(item) {
  * @param {number} change - Valore di incremento/decremento (es. 1 o -1).
  */
 function updateQuantity(itemId, change) {
+    // CONTROLLO: Non permettere modifiche se c'è un ordine attivo
+    if (hasActiveOrder) return;
+    
     const itemIndex = cart.findIndex(i => i.id === itemId);
 
     if (itemIndex !== -1) {
@@ -126,10 +133,14 @@ function removeItem(itemId) {
 }
 
 /**
- * Collega gli eventi di delegation ai pulsanti di manipolazione del carrello (+, -, Rimuovi) nel Modale.
+ * Collega gli eventi di delegation ai pulsanti di manipolazione del carrello (+, -) nel Modale.
  */
 function attachCartEventListeners() {
-    cartList.onclick = (e) => {
+    // Delegation sul corpo della lista per i pulsanti + e -
+    cartList.addEventListener('click', (e) => {
+        // Ignora se c'è un ordine attivo
+        if (hasActiveOrder) return;
+        
         const button = e.target.closest('.cart-btn');
         if (!button) return;
 
@@ -140,13 +151,13 @@ function attachCartEventListeners() {
         } else if (button.classList.contains('cart-decrement')) {
             updateQuantity(itemId, -1);
         }
-        // Nota: non c'è un pulsante 'cart-remove' esplicito, ma il decremento a 0 lo rimuove.
-    };
+    });
 }
 
 
 /**
  * Aggiorna la lista del carrello nell'interfaccia utente (UI) e la barra fissa.
+ * CORREZIONE: Aggiorna il totale nella modale usando il selettore corretto.
  */
 function renderCart() {
     cartList.innerHTML = '';
@@ -178,18 +189,39 @@ function renderCart() {
             </div>
             
             <div class="cart-item-controls">
-                <button class="cart-btn cart-decrement" data-id="${item.id}">-</button>
+                <button class="cart-btn cart-decrement" data-id="${item.id}" ${hasActiveOrder ? 'disabled' : ''}>-</button>
                 <span class="cart-qty">${item.quantity}</span>
-                <button class="cart-btn cart-increment" data-id="${item.id}">+</button>
+                <button class="cart-btn cart-increment" data-id="${item.id}" ${hasActiveOrder ? 'disabled' : ''}>+</button>
             </div>
         `;
         cartList.appendChild(li);
     });
 
     const formattedTotal = total.toFixed(2);
-    totalPriceSpan.textContent = formattedTotal;
-    cartItemCount.textContent = itemCount;
-    cartFixedTotal.textContent = formattedTotal;
+    
+    // Aggiorna il totale nella modale (CORREZIONE SELETTORE)
+    if (cartTotalModal) {
+        cartTotalModal.textContent = `€ ${formattedTotal}`;
+    }
+    // Aggiorna la barra fissa
+    if (cartItemCount) {
+        cartItemCount.textContent = itemCount;
+    }
+    if (cartFixedTotal) {
+        cartFixedTotal.textContent = `€ ${formattedTotal}`;
+    }
+
+    // Se il carrello è vuoto e non ci sono ordini attivi, abilita/disabilita l'invio
+    if (sendOrderBtn) {
+        sendOrderBtn.disabled = cart.length === 0 || hasActiveOrder;
+    }
+
+    // Mostra/Nascondi la barra fissa solo se non c'è un ordine attivo E il carrello è pieno
+    const cartBar = document.getElementById('cart-fixed-bar');
+    if (cartBar) {
+        // Mostra la barra solo se non c'è un ordine attivo E ci sono articoli nel carrello
+        cartBar.style.display = (!hasActiveOrder && cart.length > 0) ? 'block' : 'none';
+    }
 }
 
 // ====================================================================
@@ -198,11 +230,10 @@ function renderCart() {
 
 /**
  * Controlla se esiste già un ordine attivo per questo tavolo.
- * Se esiste, blocca il form e mostra lo stato dell'ordine.
  */
 async function checkActiveOrder() {
+    // ... (Logica di checkActiveOrder invariata) ...
     try {
-        // Query per trovare ordini ATTIVI (pending o executed) per questo tavolo
         const snapshot = await db.collection('orders')
             .where('tableId', '==', tableId)
             .where('status', 'in', ['pending', 'executed'])
@@ -217,18 +248,14 @@ async function checkActiveOrder() {
             
             console.log('Ordine attivo trovato:', activeOrderId, orderData);
             
-            // IMPOSTA IL FLAG
             hasActiveOrder = true;
             
-            // Mostra l'ordine attivo e blocca il menu
             displayActiveOrder(orderData);
             disableOrdering();
             
-            // Avvia il listener in tempo reale per questo ordine
             listenToOrderUpdates(activeOrderId);
         } else {
             console.log('Nessun ordine attivo trovato per il tavolo:', tableId);
-            // Nessun ordine attivo, permetti nuovi ordini
             hasActiveOrder = false;
             activeOrderId = null;
             enableOrdering();
@@ -236,7 +263,6 @@ async function checkActiveOrder() {
         }
     } catch (error) {
         console.error("Errore nel controllo ordini attivi:", error);
-        // In caso di errore, per sicurezza permettiamo di ordinare
         hasActiveOrder = false;
         enableOrdering();
     }
@@ -246,19 +272,17 @@ async function checkActiveOrder() {
  * Ascolta gli aggiornamenti in tempo reale dell'ordine attivo.
  */
 function listenToOrderUpdates(orderId) {
-    // Rimuovi il listener precedente se esiste
+    // ... (Logica di listenToOrderUpdates invariata) ...
     if (unsubscribeOrderListener) {
         unsubscribeOrderListener();
     }
     
     console.log('Avvio listener per ordine:', orderId);
     
-    // Crea un nuovo listener
     unsubscribeOrderListener = db.collection('orders').doc(orderId)
         .onSnapshot((doc) => {
             if (!doc.exists) {
                 console.log('Ordine eliminato dalla dashboard');
-                // L'ordine è stato eliminato dalla dashboard
                 hasActiveOrder = false;
                 activeOrderId = null;
                 enableOrdering();
@@ -269,7 +293,6 @@ function listenToOrderUpdates(orderId) {
             const orderData = doc.data();
             console.log('Aggiornamento ordine:', orderData.status);
             
-            // Se lo stato è 'completed', l'ordine è concluso
             if (orderData.status === 'completed') {
                 console.log('Ordine completato');
                 hasActiveOrder = false;
@@ -281,7 +304,6 @@ function listenToOrderUpdates(orderId) {
                     unsubscribeOrderListener = null;
                 }
             } else {
-                // Aggiorna la visualizzazione dello stato (pending -> executed)
                 displayActiveOrder(orderData);
             }
         }, (error) => {
@@ -291,23 +313,24 @@ function listenToOrderUpdates(orderId) {
 
 /**
  * Mostra l'ordine attivo con il suo stato in un banner.
- * CORREZIONE: Inserisce il banner all'inizio di <main> (prima di #menu-container)
  */
 function displayActiveOrder(orderData) {
-    // Rimuovi eventuali banner precedenti
     const existingBanner = document.getElementById('active-order-banner');
     if (existingBanner) {
         existingBanner.remove();
     }
     
-    // Crea il banner
     const banner = document.createElement('div');
     banner.id = 'active-order-banner';
     banner.className = 'active-order-banner';
     
-    const statusText = orderData.status === 'pending' ? 'In Attesa' : 'In Preparazione';
-    const statusClass = orderData.status === 'pending' ? 'status-pending' : 'status-executed';
-    const statusIcon = orderData.status === 'pending' ? '⏳' : '👨‍🍳';
+    const statusTextMap = { 'pending': 'In Attesa', 'executed': 'In Preparazione' };
+    const statusClassMap = { 'pending': 'status-pending', 'executed': 'status-executed' };
+    const statusIconMap = { 'pending': '⏳', 'executed': '👨‍🍳' };
+
+    const statusText = statusTextMap[orderData.status] || 'Sconosciuto';
+    const statusClass = statusClassMap[orderData.status] || '';
+    const statusIcon = statusIconMap[orderData.status] || '';
     
     banner.innerHTML = `
         <div class="order-status-header">
@@ -329,10 +352,12 @@ function displayActiveOrder(orderData) {
         <p class="order-info">📌 Il tuo ordine verrà servito a breve. Non è possibile effettuare nuovi ordini fino al completamento di questo.</p>
     `;
     
-    // CORREZIONE: Inserisci il banner all'inizio di <main>, prima di #menu-container
     const main = document.querySelector('main');
-    if (main && menuContainer) {
-        main.insertBefore(banner, menuContainer);
+    const activeOrderMessageContainer = document.getElementById('active-order-message'); // Contenitore nel tuo HTML
+    if (activeOrderMessageContainer) {
+        activeOrderMessageContainer.appendChild(banner);
+        // Nascondi il menu principale leggermente per focalizzare sull'ordine attivo
+        menuContainer.style.marginTop = '0'; 
     }
 }
 
@@ -344,6 +369,7 @@ function hideActiveOrderDisplay() {
     if (banner) {
         banner.remove();
     }
+    menuContainer.style.marginTop = ''; // Ripristina il margine
 }
 
 /**
@@ -352,30 +378,33 @@ function hideActiveOrderDisplay() {
 function disableOrdering() {
     console.log('Disabilitazione ordinazione...');
     
-    // Blocca il menu visivamente
+    // Blocca il menu visivamente e interattivamente
     if (menuContainer) {
         menuContainer.style.opacity = '0.5';
         menuContainer.style.pointerEvents = 'none';
     }
     
-    // Disabilita TUTTI i pulsanti "Aggiungi"
+    // Disabilita TUTTI i pulsanti "Aggiungi" (se il menu è già renderizzato)
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.disabled = true;
         btn.style.opacity = '0.5';
         btn.style.cursor = 'not-allowed';
     });
     
-    // Disabilita il pulsante di invio ordine
+    // Disabilita il pulsante di invio ordine (nel modale)
     if (sendOrderBtn) {
         sendOrderBtn.disabled = true;
         sendOrderBtn.innerHTML = '<i class="fas fa-lock"></i> Ordine già attivo';
     }
     
-    // Nascondi la barra fissa del carrello (non serve più)
+    // Nascondi la barra fissa del carrello
     const cartBar = document.getElementById('cart-fixed-bar');
     if (cartBar) {
         cartBar.style.display = 'none';
     }
+    
+    // Chiudi il modale se aperto
+    toggleCartModal(false);
 }
 
 /**
@@ -400,12 +429,12 @@ function enableOrdering() {
     // Riabilita il pulsante di invio (se c'è qualcosa nel carrello)
     if (sendOrderBtn) {
         sendOrderBtn.disabled = cart.length === 0;
-        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine al Bar';
+        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine';
     }
     
-    // Mostra la barra fissa del carrello
+    // Mostra la barra fissa del carrello (se ci sono elementi)
     const cartBar = document.getElementById('cart-fixed-bar');
-    if (cartBar) {
+    if (cartBar && cart.length > 0) {
         cartBar.style.display = 'block';
     }
     
@@ -422,6 +451,7 @@ function enableOrdering() {
  * Raggruppa un array piatto di articoli per il campo 'category'.
  */
 function groupItemsByCategory(items) {
+    // ... (Invariata) ...
     return items.reduce((acc, item) => {
         const category = item.category || 'Altro';
         if (!acc[category]) {
@@ -434,9 +464,9 @@ function groupItemsByCategory(items) {
 
 /**
  * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
- * @param {object} groupedItems - Il menu raggruppato.
  */
 function renderCategoryNavigation(groupedItems) {
+    // ... (Invariata) ...
     navQuickLinks.innerHTML = '';
     const sortedCategories = Object.keys(groupedItems).sort();
 
@@ -463,9 +493,9 @@ function renderCategoryNavigation(groupedItems) {
 
 /**
  * Visualizza il menu raggruppato in sezioni HTML.
- * @param {object} groupedItems - Il menu raggruppato per categoria.
  */
 function renderMenu(groupedItems) {
+    // ... (Invariata) ...
     menuContainer.innerHTML = '';
     const sortedCategories = Object.keys(groupedItems).sort();
 
@@ -516,6 +546,7 @@ function renderMenu(groupedItems) {
  * Legge il menu da Firestore, raggruppa, renderizza Menu e Navigazione.
  */
 async function fetchMenu() {
+    // ... (Invariata) ...
     menuContainer.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><h2>Caricamento Menu...</h2></div>';
     try {
         const snapshot = await db.collection('menu').orderBy('category').get(); 
@@ -548,6 +579,7 @@ async function fetchMenu() {
 
 /**
  * Invia l'ordine a Firestore.
+ * CORREZIONE: Legge il campo note dall'input e lo include nell'ordine.
  */
 async function sendOrder() {
     // DOPPIO CONTROLLO: Previeni invio se c'è già un ordine attivo
@@ -571,13 +603,16 @@ async function sendOrder() {
         quantity: item.quantity
     }));
     
+    // Leggi le note (CORREZIONE)
+    const notes = orderNotesInput ? orderNotesInput.value.trim() : '';
+
     const orderData = {
         tableId: tableId,
         items: itemsToSave,
-        total: parseFloat(totalPriceSpan.textContent),
+        total: parseFloat(cartTotalModal.textContent.replace('€ ', '') || 0), // Usa il totale dal modale
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         status: 'pending',
-        notes: ''
+        notes: notes // Includi le note
     };
     
     try {
@@ -590,7 +625,11 @@ async function sendOrder() {
         toggleCartModal(false); 
         alert(`✅ Ordine inviato con successo!\n\nPuoi seguire lo stato nella parte superiore della pagina.`);
         
+        // Pulisci il carrello e le note
         cart = [];
+        if (orderNotesInput) {
+             orderNotesInput.value = '';
+        }
         renderCart();
         
         // Attendi un attimo prima di controllare (per dare tempo al timestamp)
@@ -605,7 +644,7 @@ async function sendOrder() {
         activeOrderId = null;
     } finally {
         sendOrderBtn.disabled = false;
-        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine al Bar';
+        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine';
     }
 }
 
@@ -623,24 +662,18 @@ document.addEventListener('DOMContentLoaded', () => {
     sendOrderBtn.addEventListener('click', sendOrder);
     attachCartEventListeners(); 
 
+    // Evento per chiudere il modale dal pulsante (X)
     closeCartBtn.addEventListener('click', () => toggleCartModal(false));
     
+    // Evento per chiudere il modale cliccando fuori
     window.addEventListener('click', (event) => {
         if (event.target === cartModal) {
             toggleCartModal(false);
         }
     });
 
-    // CORREZIONE: Aggiunta la chiamata a toggleCartModal(true) per aprire la modale
+    // CORREZIONE: Apre la modale al click sul pulsante fisso in basso
     toggleCartBtn.addEventListener('click', () => {
-        const anchor = document.getElementById('order-anchor-point');
-        if (anchor) {
-            window.scrollTo({
-                top: anchor.offsetTop - 50,
-                behavior: 'smooth'
-            });
-        }
-        // Apri la modale dopo lo scroll
         toggleCartModal(true); 
     });
 });
