@@ -4,6 +4,7 @@
 
 const firebaseConfig = {
     // *** UTILIZZA LE TUE CREDENZIALI QUI ***
+    // (Mantengo quelle fornite per coerenza)
     apiKey: "AIzaSyC0SFan3-K074DG5moeqmu4mUgXtxCmTbg",
     authDomain: "menu-6630f.firebaseapp.com",
     projectId: "menu-6630f",
@@ -13,14 +14,22 @@ const firebaseConfig = {
     measurementId: "G-GTQS2SGNF"
 };
 
-// Inizializzazione
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// Inizializzazione (Assumendo che gli script Firebase siano caricati prima)
+// Rimuovi la linea seguente se initializeApp è già chiamata in index.html o staff-login.html
+if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const auth = typeof firebase !== 'undefined' ? firebase.auth() : {
+    onAuthStateChanged: () => {},
+    signOut: () => Promise.resolve(),
+    signInWithEmailAndPassword: () => Promise.reject(new Error("Firebase non caricato"))
+};
+const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 
 // Riferimenti Collezioni
-const menuCollection = db.collection('menu');
-const ordersCollection = db.collection('orders');
+const menuCollection = db ? db.collection('menu') : null;
+const ordersCollection = db ? db.collection('orders') : null;
 
 // Variabili Globali
 let menuData = []; // Cache del menu
@@ -96,12 +105,11 @@ function getSelectedOptions(itemElement) {
 
 
 // =========================================================
-// 4. GESTIONE AUTENTICAZIONE (DEFINIZIONI AGGIUNTE)
+// 4. GESTIONE AUTENTICAZIONE
 // =========================================================
 
 /**
  * Gestisce il logout dell'utente (lo staff).
- * Questa funzione è stata aggiunta per risolvere: ReferenceError: handleLogout is not defined
  */
 function handleLogout() {
     auth.signOut().then(() => {
@@ -115,12 +123,22 @@ function handleLogout() {
 }
 
 /**
- * Funzione di esempio per il login (da implementare sul file staff-login.html)
+ * Funzione di esempio per il login (chiamata da staff-login.html)
  */
 function handleStaffLogin(event) {
-    event.preventDefault();
-    const email = document.getElementById('email-input').value;
-    const password = document.getElementById('password-input').value;
+    // Assicurati che questa funzione sia chiamata solo da staff-login.html
+    if (event) event.preventDefault(); 
+    
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    
+    const email = emailInput ? emailInput.value : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (!email || !password) {
+        alert("Inserisci email e password.");
+        return;
+    }
 
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
@@ -135,13 +153,16 @@ function handleStaffLogin(event) {
 
 
 auth.onAuthStateChanged(user => {
-    // ... (Logica di reindirizzamento Auth come prima)
-    if (window.location.pathname.endsWith('staff-menu.html') && user) {
+    // Gestione reindirizzamento
+    const path = window.location.pathname;
+    
+    if (path.endsWith('staff-menu.html') && user) {
+        // Se autenticato e sulla pagina del menu
         initializeStaffApp(user);
-    } else if (window.location.pathname.endsWith('staff-menu.html') && !user) {
+    } else if (path.endsWith('staff-menu.html') && !user) {
         // Se non autenticato e sulla pagina del menu, reindirizza al login
         window.location.href = 'staff-login.html'; 
-    } else if (window.location.pathname.endsWith('staff-login.html') && user) {
+    } else if (path.endsWith('staff-login.html') && user) {
         // Se autenticato e sulla pagina di login, reindirizza al menu
         window.location.href = 'staff-menu.html';
     }
@@ -159,8 +180,7 @@ function populateTableSelect() {
     const tableSelect = document.getElementById('table-select');
     if (!tableSelect) return;
 
-    // ... (Logica di popolamento del selettore e gestione dello stato iniziale) ...
-
+    // Aggiunge la logica per il cambio tavolo
     tableSelect.addEventListener('change', (e) => {
         const selectedValue = e.target.value;
         
@@ -170,8 +190,11 @@ function populateTableSelect() {
             DOM.tableIdDisplay.textContent = "NESSUNO";
             if (DOM.cartTableDisplayFull) DOM.cartTableDisplayFull.textContent = "NESSUNO";
             
-            DOM.mainContainer.style.pointerEvents = 'none';
-            DOM.mainContainer.style.opacity = '0.5';
+            // Disabilita l'interazione con il menu
+            if (DOM.mainContainer) {
+                DOM.mainContainer.style.pointerEvents = 'none';
+                DOM.mainContainer.style.opacity = '0.5';
+            }
             cartItems = {};
             renderCart();
             return;
@@ -182,26 +205,30 @@ function populateTableSelect() {
         DOM.tableIdDisplay.textContent = currentTableId;
         if (DOM.cartTableDisplayFull) DOM.cartTableDisplayFull.textContent = currentTableId; 
         
-        DOM.mainContainer.style.pointerEvents = 'auto';
-        DOM.mainContainer.style.opacity = '1';
+        if (DOM.mainContainer) {
+            DOM.mainContainer.style.pointerEvents = 'auto';
+            DOM.mainContainer.style.opacity = '1';
+        }
         
-        const loadingState = DOM.mainContainer.querySelector('.loading-state');
+        const loadingState = DOM.mainContainer ? DOM.mainContainer.querySelector('.loading-state') : null;
         if (loadingState) loadingState.style.display = 'none'; 
         
+        // Resetta il carrello ad ogni cambio tavolo
         cartItems = {};
         if (DOM.orderNotesInput) DOM.orderNotesInput.value = '';
         
         renderCart();
-        // Nota: non è necessario renderMenu di nuovo se menuData non cambia
     });
 
-    // Stato Iniziale
+    // Stato Iniziale e Popolamento del selettore
     currentTableId = null; 
-    DOM.tableIdDisplay.textContent = "NESSUNO";
-    DOM.mainContainer.style.pointerEvents = 'none';
-    DOM.mainContainer.style.opacity = '0.5';
+    if (DOM.tableIdDisplay) DOM.tableIdDisplay.textContent = "NESSUNO";
+    if (DOM.mainContainer) {
+        DOM.mainContainer.style.pointerEvents = 'none';
+        DOM.mainContainer.style.opacity = '0.5';
+    }
 
-    // *** AGGIUNTA LOGICA POPOLAMENTO TAVOLI (1-40) ***
+    // *** LOGICA POPOLAMENTO TAVOLI (1-40) ***
     tableSelect.innerHTML = '';
     const defaultOption = document.createElement('option');
     defaultOption.value = "";
@@ -219,10 +246,10 @@ function populateTableSelect() {
 }
 
 /**
- * Carica il menu da Firestore (Assunzione: i dati del menu includono un array di 'options').
- * Esempio di struttura item in Firestore: {id, name, price, category, options: [{name: 'Piccolo', price: 0}, {name: 'Medio', price: 0.50}]}
+ * Carica il menu da Firestore.
  */
 async function loadMenu() {
+    if (!menuCollection || !DOM.mainContainer) return;
     try {
         const snapshot = await menuCollection.get();
         menuData = snapshot.docs.map(doc => ({
@@ -233,7 +260,7 @@ async function loadMenu() {
         renderMenu(); 
     } catch (error) {
         console.error("Errore nel caricamento del menu: ", error);
-        if (DOM.mainContainer) DOM.mainContainer.innerHTML = `<p style="color: red;">Impossibile caricare il menu. Riprova più tardi.</p>`;
+        DOM.mainContainer.innerHTML = `<p style="color: red;">Impossibile caricare il menu. Riprova più tardi.</p>`;
     }
 }
 
@@ -265,7 +292,7 @@ function renderMenu() {
 
         groupedMenu[category].forEach(item => {
             const itemElement = document.createElement('div');
-            itemElement.className = 'menu-item-card'; // Cambiato a card per chiarezza
+            itemElement.className = 'menu-item-card';
             
             // Contenitore principale dell'articolo
             let itemHtml = `
@@ -276,16 +303,13 @@ function renderMenu() {
             `;
             
             // --- GENERAZIONE OPZIONI/CHECKBOXES ---
-            // Assunzione: item.options è un array di oggetti: [{name: "Piccola", price: 0}, {name: "Media", price: 0.50}]
             if (item.options && Array.isArray(item.options) && item.options.length > 0) {
                 itemHtml += `
                     <div class="item-options-container" data-item-id="${item.id}">
                 `;
                 item.options.forEach((option, index) => {
                     const optionId = `${item.id}-${option.name.replace(/\s/g, '')}`;
-                    // Il prezzo extra è solo per la visualizzazione/calcolo
                     const optionPrice = parseFloat(option.price);
-                    // Controllo di sicurezza: se option.price non è un numero, usa 0
                     const safePrice = isNaN(optionPrice) ? 0 : optionPrice; 
                     
                     const priceLabel = safePrice > 0 ? ` (+€${safePrice.toFixed(2)})` : '';
@@ -297,7 +321,7 @@ function renderMenu() {
                                 name="options-${item.id}" 
                                 data-option-name="${option.name}"
                                 data-extra-price="${safePrice}"
-                                ${index === 0 ? 'checked' : ''} 
+                                ${index === 0 ? 'checked' : ''}  
                             >
                             ${option.name}${priceLabel}
                         </label>
@@ -305,7 +329,6 @@ function renderMenu() {
                 });
                 itemHtml += `</div>`;
             } else {
-                 // Aggiunge un div vuoto per uniformità se non ci sono opzioni
                  itemHtml += `<div class="item-options-container"></div>`;
             }
 
@@ -330,7 +353,7 @@ function renderMenu() {
         button.addEventListener('click', handleAddToCart);
     });
 
-    // 4. Genera Link Categorie e aggiunge Listener (Invariato)
+    // 4. Genera Link Categorie e aggiunge Listener
     categories.forEach(category => {
         const linkBtn = document.createElement('button');
         linkBtn.className = 'category-btn';
@@ -354,7 +377,6 @@ function renderMenu() {
     cartLinkBtn.className = 'category-btn cart-link-quick';
     cartLinkBtn.innerHTML = '<i class="fas fa-receipt"></i> Riepilogo Ordine';
     cartLinkBtn.addEventListener('click', () => {
-        // Logica per apertura carrello
         if (DOM.toggleFullCartBtn) DOM.toggleFullCartBtn.click();
     });
     DOM.quickLinksNav.appendChild(cartLinkBtn);
@@ -377,11 +399,12 @@ function handleAddToCart(event) {
     const button = event.target;
     // L'elemento genitore (la card)
     const itemElement = button.closest('.menu-item-card');
+    if (!itemElement) return;
     
     // Dati base dell'articolo
     const baseId = button.dataset.id;
     const name = button.dataset.name;
-    const basePrice = parseFloat(button.dataset.price); 
+    const basePrice = parseFloat(button.dataset.price || 0); 
     
     // Opzioni selezionate (con eventuali prezzi extra)
     const selectedOptions = getSelectedOptions(itemElement);
@@ -389,7 +412,7 @@ function handleAddToCart(event) {
     // Calcolo prezzo totale articolo (base + opzioni)
     const totalItemPrice = basePrice + selectedOptions.reduce((sum, opt) => sum + opt.price, 0);
     
-    // ID univoco del carrello che include le opzioni
+    // ID univoco del carrello che include le opzioni (solo i nomi per l'ID)
     const uniqueCartId = createUniqueCartId(baseId, selectedOptions.map(opt => opt.name));
 
     if (cartItems[uniqueCartId]) {
@@ -399,7 +422,7 @@ function handleAddToCart(event) {
             id: baseId,
             uniqueId: uniqueCartId,
             name: name, 
-            price: totalItemPrice, // Prezzo finale calcolato
+            price: totalItemPrice, // Prezzo finale calcolato (unitario)
             basePrice: basePrice,
             options: selectedOptions, // Lista delle opzioni selezionate
             quantity: 1 
@@ -423,6 +446,9 @@ function updateCartQuantity(uniqueId, change) {
     renderCart();
 }
 
+// Rende updateCartQuantity disponibile a livello globale per onclick nel renderCart
+window.updateCartQuantity = updateCartQuantity;
+
 /**
  * Renderizza la lista del carrello e aggiorna il totale.
  */
@@ -435,7 +461,6 @@ function renderCart() {
     const cartItemsArray = Object.values(cartItems);
 
     if (cartItemsArray.length === 0) {
-        // ... Logica carrello vuoto ...
         DOM.cartList.innerHTML = '<li class="empty-cart-message">Il carrello è vuoto.</li>';
         DOM.sendOrderBtn.disabled = true;
         if(DOM.cartFixedBarStaff) DOM.cartFixedBarStaff.classList.add('hidden');
@@ -486,8 +511,8 @@ function renderCart() {
  * Invia l'ordine a Firestore.
  */
 async function sendOrder(staffUser) {
-    if (Object.keys(cartItems).length === 0 || !currentTableId) {
-        alert("Carrello vuoto o nessun tavolo selezionato.");
+    if (Object.keys(cartItems).length === 0 || !currentTableId || !ordersCollection) {
+        alert("Carrello vuoto, nessun tavolo selezionato o database non disponibile.");
         return;
     }
 
@@ -495,8 +520,8 @@ async function sendOrder(staffUser) {
     DOM.sendOrderBtn.textContent = 'Invio...';
 
     const orderNotes = DOM.orderNotesInput ? DOM.orderNotesInput.value.trim() : '';
-    // Usa il valore del totale dal DOM o ricalcola per sicurezza
-    const total = parseFloat(DOM.totalPriceSpanFull.textContent) || Object.values(cartItems).reduce((sum, item) => sum + item.price * item.quantity, 0); 
+    // Ricalcola il totale per sicurezza
+    const total = Object.values(cartItems).reduce((sum, item) => sum + item.price * item.quantity, 0); 
     
     // Mappa i dati del carrello per l'invio al database
     const orderDetails = Object.values(cartItems).map(item => ({
@@ -549,44 +574,47 @@ async function sendOrder(staffUser) {
 // =========================================================
 
 function initializeStaffApp(user) {
+    // 1. Carica Menu e Popola Tavoli
     loadMenu(); 
     populateTableSelect(); 
 
+    // 2. Listener Invio Ordine
     if (DOM.sendOrderBtn) DOM.sendOrderBtn.addEventListener('click', () => sendOrder(user));
     
-    // QUI SI RISOLVE L'ERRORE: handleLogout è ora definita globalmente (sezione 4)
+    // 3. Listener Logout
     const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout); // Linea 510 (circa)
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
+    // 4. Inizializza Render Carrello
     renderCart();
 
-    // Gestione Apertura/Chiusura Carrello Completo (Invariata)
+    // 5. Gestione Apertura/Chiusura Carrello Completo (Sidebar/Modal)
     if (DOM.toggleFullCartBtn && DOM.closeCartBtn && DOM.fullCartDetails) {
         DOM.toggleFullCartBtn.addEventListener('click', () => {
-            if (window.innerWidth <= 768) { 
-                DOM.fullCartDetails.classList.remove('hidden-cart');
-                document.body.classList.add('no-scroll');
-            } else {
-                window.scrollTo({
-                    top: document.body.scrollHeight,
-                    behavior: 'smooth'
-                });
-                DOM.fullCartDetails.classList.remove('hidden-cart');
-            }
+             // Mostra il carrello completo
+            DOM.fullCartDetails.classList.remove('hidden-cart');
+            // Blocca lo scroll del body
+            document.body.classList.add('no-scroll');
             DOM.fullCartDetails.scrollTop = 0; 
         });
 
         DOM.closeCartBtn.addEventListener('click', () => {
+            // Nasconde il carrello completo
             DOM.fullCartDetails.classList.add('hidden-cart');
+            // Sblocca lo scroll del body
             document.body.classList.remove('no-scroll');
         });
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Logica di gestione login (come prima)
+    // Logica di gestione login (solo se sulla pagina di login)
     if (window.location.pathname.endsWith('staff-login.html')) {
-        // La funzione handleStaffLogin DEVE esistere in staff-login.html
-        document.getElementById('login-btn')?.addEventListener('click', handleStaffLogin);
+        const loginForm = document.getElementById('staff-login-form');
+        if (loginForm) {
+            // Sostituisce l'event listener sul bottone con uno sul submit del form
+            // per gestire anche l'invio con tasto Invio
+            loginForm.addEventListener('submit', handleStaffLogin);
+        }
     }
 });
