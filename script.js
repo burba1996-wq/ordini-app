@@ -65,6 +65,8 @@ function getTableIdFromUrl() {
  */
 function toggleCartModal(show) {
     if (show) {
+        // Aggiorna il carrello prima di aprirlo
+        renderCart(); 
         cartModal.style.display = 'block';
         document.body.style.overflow = 'hidden';
     } else {
@@ -137,9 +139,8 @@ function attachCartEventListeners() {
             updateQuantity(itemId, 1);
         } else if (button.classList.contains('cart-decrement')) {
             updateQuantity(itemId, -1);
-        } else if (button.classList.contains('cart-remove')) {
-            removeItem(itemId); 
         }
+        // Nota: non c'è un pulsante 'cart-remove' esplicito, ma il decremento a 0 lo rimuove.
     };
 }
 
@@ -177,7 +178,7 @@ function renderCart() {
             </div>
             
             <div class="cart-item-controls">
-                <button class="cart-btn cart-decrement minus-btn" data-id="${item.id}">-</button>
+                <button class="cart-btn cart-decrement" data-id="${item.id}">-</button>
                 <span class="cart-qty">${item.quantity}</span>
                 <button class="cart-btn cart-increment" data-id="${item.id}">+</button>
             </div>
@@ -290,6 +291,7 @@ function listenToOrderUpdates(orderId) {
 
 /**
  * Mostra l'ordine attivo con il suo stato in un banner.
+ * CORREZIONE: Inserisce il banner all'inizio di <main> (prima di #menu-container)
  */
 function displayActiveOrder(orderData) {
     // Rimuovi eventuali banner precedenti
@@ -327,10 +329,10 @@ function displayActiveOrder(orderData) {
         <p class="order-info">📌 Il tuo ordine verrà servito a breve. Non è possibile effettuare nuovi ordini fino al completamento di questo.</p>
     `;
     
-    // Inserisci il banner all'inizio del body, dopo l'header
-    const header = document.querySelector('.menu-header');
-    if (header && header.parentNode) {
-        header.parentNode.insertBefore(banner, header.nextSibling);
+    // CORREZIONE: Inserisci il banner all'inizio di <main>, prima di #menu-container
+    const main = document.querySelector('main');
+    if (main && menuContainer) {
+        main.insertBefore(banner, menuContainer);
     }
 }
 
@@ -629,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // CORREZIONE: Aggiunta la chiamata a toggleCartModal(true) per aprire la modale
     toggleCartBtn.addEventListener('click', () => {
         const anchor = document.getElementById('order-anchor-point');
         if (anchor) {
@@ -637,6 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 behavior: 'smooth'
             });
         }
+        // Apri la modale dopo lo scroll
+        toggleCartModal(true); 
     });
 });
 
