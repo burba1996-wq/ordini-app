@@ -32,11 +32,22 @@ const TOTAL_TABLES = 35; // Numero massimo di tavoli nella griglia
 
 // Definizione degli stati e dei colori (per la griglia dei tavoli)
 const STATUS_COLORS = {
-    pending: 'pending',     
-    executed: 'executed',   
+    pending: 'pending',      
+    executed: 'executed',    
     free: 'free'           
 };
 
+// ====================================================================
+// 🎧 INIZIALIZZAZIONE EFFETTO SONORO (NUOVO BLOCCO)
+// ====================================================================
+
+// Variabile globale per il conteggio degli ordini all'ultimo refresh
+let lastOrderCount = 0; 
+
+// 🔊 Inizializzazione dell'oggetto Audio
+const notificationSound = new Audio('notification.mp3'); 
+// Imposta un volume ragionevole
+notificationSound.volume = 0.5;
 
 // ====================================================================
 // 2. GESTIONE AUTENTICAZIONE (AUTH)
@@ -46,6 +57,7 @@ const STATUS_COLORS = {
  * Gestisce il processo di login per admin-login.html.
  */
 function handleAdminLogin() {
+// ... [CODICE handleAdminLogin ESISTENTE] ...
     const loginForm = document.getElementById('admin-login-form');
     const emailInput = document.getElementById('admin-email');
     const passwordInput = document.getElementById('admin-password');
@@ -83,6 +95,7 @@ function handleAdminLogin() {
  * Funzione di Logout per admin.html.
  */
 function handleAdminLogout() {
+// ... [CODICE handleAdminLogout ESISTENTE] ...
     auth.signOut().then(() => {
         // Logout riuscito. onAuthStateChanged reindirizzerà a admin-login.html.
         console.log("Logout Admin riuscito. Reindirizzamento...");
@@ -94,6 +107,7 @@ function handleAdminLogout() {
 
 // --- Listener Globale di Stato Autenticazione ---
 auth.onAuthStateChanged(user => {
+// ... [CODICE auth.onAuthStateChanged ESISTENTE] ...
     const isAdminPage = window.location.pathname.endsWith('admin.html');
     const isAdminLoginPage = window.location.pathname.endsWith('admin-login.html');
 
@@ -119,6 +133,7 @@ auth.onAuthStateChanged(user => {
  * Funzione di utilità per formattare il Timestamp in ora leggibile.
  */
 function formatTimestampToTime(timestamp, includeDate = false) {
+// ... [CODICE formatTimestampToTime ESISTENTE] ...
     if (!timestamp) return 'Ora Sconosciuta';
     const date = timestamp.toDate();
     let options = { hour: '2-digit', minute: '2-digit' };
@@ -135,6 +150,7 @@ function formatTimestampToTime(timestamp, includeDate = false) {
  * Funzione principale che avvia la dashboard dopo il login.
  */
 function initializeAdminDashboard(user) {
+// ... [CODICE initializeAdminDashboard ESISTENTE] ...
     console.log(`Dashboard Admin avviata per: ${user.email}`);
 
     const logoutBtn = document.getElementById('admin-logout-btn');
@@ -159,6 +175,7 @@ function initializeAdminDashboard(user) {
  * Configura gli event listener per i pulsanti di cambio vista.
  */
 function setupViewFilters() {
+// ... [CODICE setupViewFilters ESISTENTE] ...
     const filterContainer = document.getElementById('order-filters');
     if (!filterContainer) return;
 
@@ -195,6 +212,7 @@ function setupViewFilters() {
  * Visualizza i dettagli dell'ordine selezionato nel pannello di dettaglio.
  */
 function displayOrderDetails(order) {
+// ... [CODICE displayOrderDetails ESISTENTE] ...
     if (!orderDetailsContainer) return;
 
     const timeToDisplay = formatTimestampToTime(order.timestamp, false);
@@ -253,6 +271,7 @@ function displayOrderDetails(order) {
  * Visualizza il messaggio "Tavolo libero" nel pannello di dettaglio.
  */
 function displayTableFree(tableNumber) {
+// ... [CODICE displayTableFree ESISTENTE] ...
      if (!orderDetailsContainer) return;
      orderDetailsContainer.innerHTML = `<p class="empty-message">Tavolo ${tableNumber} libero. Nessun ordine attivo.</p>`;
 }
@@ -261,6 +280,7 @@ function displayTableFree(tableNumber) {
  * Gestisce il click su un tavolo della griglia.
  */
 function handleTableClick(e) {
+// ... [CODICE handleTableClick ESISTENTE] ...
     const button = e.target.closest('.table-btn');
     if (!button) return;
 
@@ -285,6 +305,7 @@ function handleTableClick(e) {
  * Gestisce il click sui pulsanti di aggiornamento dello stato.
  */
 function handleStatusButtonClick(e) {
+// ... [CODICE handleStatusButtonClick ESISTENTE] ...
     const button = e.target.closest('.update-status-btn');
     if (!button) return;
 
@@ -300,6 +321,7 @@ function handleStatusButtonClick(e) {
  * Aggiorna lo stato di un ordine su Firestore.
  */
 async function updateOrderStatus(orderId, newStatus) {
+// ... [CODICE updateOrderStatus ESISTENTE] ...
     const updateData = { status: newStatus };
     
     if (newStatus === 'completed') {
@@ -321,6 +343,7 @@ async function updateOrderStatus(orderId, newStatus) {
  * Genera la griglia vuota dei tavoli nell'HTML la prima volta.
  */
 function renderTableGrid() {
+// ... [CODICE renderTableGrid ESISTENTE] ...
     if (!tablesGridContainer) return;
 
     tablesGridContainer.innerHTML = ''; 
@@ -359,9 +382,26 @@ function listenForActiveOrders() {
     
     // Funzione per unire e processare gli snapshot
     const processSnapshots = () => {
-         Promise.all([pendingQuery.get(), executedQuery.get()])
+        Promise.all([pendingQuery.get(), executedQuery.get()])
             .then(([pendingSnapshot, executedSnapshot]) => {
                 const newActiveOrders = {};
+                
+                const combinedSize = pendingSnapshot.size + executedSnapshot.size;
+                
+                // ===============================================
+                // 🔔 NUOVA LOGICA EFFETTO SONORO QUI
+                // ===============================================
+                // Controlla se il conteggio è aumentato da quando l'ultima volta abbiamo salvato i dati
+                // E assicurati che lastOrderCount > 0 per evitare il suono al primo caricamento
+                if (lastOrderCount > 0 && combinedSize > lastOrderCount) {
+                    console.log('🔔 Nuovo ordine arrivato! Riproduco il suono.');
+                    notificationSound.play().catch(error => {
+                        console.warn("Riproduzione audio fallita (probabilmente bloccata da autoplay):", error);
+                    });
+                }
+                
+                // Aggiorna il conteggio degli ordini attivi
+                lastOrderCount = combinedSize; 
 
                 // Processa gli ordini Pending
                 pendingSnapshot.forEach(doc => {
@@ -384,8 +424,10 @@ function listenForActiveOrders() {
 
                 if (selectedTableId) {
                     if (activeTableOrders[selectedTableId]) {
+                        // Se l'ordine del tavolo selezionato è cambiato, aggiorna il pannello dei dettagli
                         displayOrderDetails(activeTableOrders[selectedTableId]);
                     } else {
+                        // Se l'ordine del tavolo selezionato è stato completato, mostra libero
                         displayTableFree(selectedTableId);
                     }
                 }
@@ -398,11 +440,11 @@ function listenForActiveOrders() {
 
     // Attacca i listener e chiama processSnapshots per ogni cambiamento
     pendingQuery.onSnapshot(processSnapshots, error => {
-         console.error("Errore nel listener Pending:", error);
+          console.error("Errore nel listener Pending:", error);
     });
     
     executedQuery.onSnapshot(processSnapshots, error => {
-         console.error("Errore nel listener Executed:", error);
+          console.error("Errore nel listener Executed:", error);
     });
     
     // Ho mantenuto i due listener separati per coerenza con la soluzione Firestore,
@@ -413,6 +455,7 @@ function listenForActiveOrders() {
  * Aggiorna il colore e le classi dei pulsanti dei tavoli in base a activeTableOrders.
  */
 function updateTableGridAppearance() {
+// ... [CODICE updateTableGridAppearance ESISTENTE] ...
     if (!tablesGridContainer) {
         console.error("ERRORE CRITICO: tablesGridContainer non trovato.");
         return; 
@@ -456,6 +499,7 @@ function updateTableGridAppearance() {
  * Legge e visualizza gli ordini completati (Storico).
  */
 async function fetchHistoryOrders() {
+// ... [CODICE fetchHistoryOrders ESISTENTE] ...
     if (!historyContainer) return;
 
     historyContainer.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Caricamento storico...</div>';
@@ -491,6 +535,7 @@ async function fetchHistoryOrders() {
  * Crea e aggiunge la card HTML per un singolo ordine nello Storico.
  */
 function renderHistoryCard(order, orderId) {
+// ... [CODICE renderHistoryCard ESISTENTE] ...
     const card = document.createElement('div');
     card.className = `order-card completed history-card`; 
     
