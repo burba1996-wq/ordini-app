@@ -9,10 +9,11 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
+    
     <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
-
     <header class="menu-header">
         <div class="header-content">
             <h1>BAR ORDER APP</h1>
@@ -22,7 +23,6 @@
         <nav id="quick-links" class="category-nav">
         </nav>
     </header>
-
     <main> 
         <section id="menu-container"> 
             <div class="loading-state">
@@ -30,9 +30,7 @@
                 <h2>Caricamento Menu...</h2>
             </div>
         </section>
-
         <div id="order-anchor-point" style="height: 1px;"></div> 
-
     </main>
     <section id="cart-fixed-bar">
         <button id="toggle-cart-btn">
@@ -40,7 +38,6 @@
             <span id="cart-item-count" class="badge">0</span> Articoli - € <span id="cart-fixed-total">0.00</span>
         </button>
     </section>
-
     <div id="cart-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -48,7 +45,6 @@
             
             <ul id="cart-list" class="cart-items-list">
             </ul>
-
             <div class="cart-summary">
                 <p>Totale: **€ <span id="total-price">0.00</span>**</p>
             </div>
@@ -61,7 +57,6 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
