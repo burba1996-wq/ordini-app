@@ -275,7 +275,7 @@ a {
 
 /* --- Griglia dei Tavoli (#tables-grid) --- */
 #tables-grid {
-    /* MODIFICA 1: Riduco la dimensione minima dei cerchi a 35px */
+    /* MODIFICA: Riduco la dimensione minima dei cerchi a 35px */
     grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); 
     gap: 8px; 
     padding: 20px;
@@ -290,8 +290,8 @@ a {
     position: relative;
     border: 2px solid #ccc; /* RIDOTTO: 2px */
     border-radius: 50%;  
-    /* MODIFICA 2: Riduco la dimensione del testo all'interno del cerchio */
-    font-size: 0.8em; 
+    /* RIPRISTINATO: Font size a 1.0em */
+    font-size: 1.0em; 
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
