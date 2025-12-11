@@ -275,12 +275,13 @@ a {
 /* --- Griglia dei Tavoli (#tables-grid) --- */
 #tables-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); 
-    gap: 8px; 
+    grid-template-columns: repeat(auto-fill, minmax(60px, 60px)); 
+    gap: 12px; 
     padding: 20px;
     background-color: var(--card-bg);
     border-radius: 12px;
     box-shadow: var(--shadow);
+    justify-content: center;
 }
 
 .table-btn {
