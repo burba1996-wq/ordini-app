@@ -42,6 +42,7 @@ let tableId = 'Tavolo non trovato'; // Modificato il default per chiarezza
 let menuStructure = {}; // Salverà la struttura del menu raggruppato
 let activeOrderId = null; // ID dell'ordine attivo per questo tavolo
 let unsubscribeOrderListener = null; // Funzione per rimuovere il listener
+let hasActiveOrder = false; // Flag per controllare se esiste un ordine attivo
 
 // ====================================================================
 // 3. LOGICA DI CARRELLO E STATO
@@ -65,7 +66,7 @@ function getTableIdFromUrl() {
 function toggleCartModal(show) {
     if (show) {
         cartModal.style.display = 'block';
-        document.body.style.overflow = 'hidden'; // Impedisce lo scroll del body
+        document.body.style.overflow = 'hidden';
     } else {
         cartModal.style.display = 'none';
         document.body.style.overflow = '';
@@ -77,6 +78,12 @@ function toggleCartModal(show) {
  * @param {object} item - L'articolo da aggiungere ({id, name, price}).
  */
 function addToCart(item) {
+    // CONTROLLO: Non permettere di aggiungere se c'è un ordine attivo
+    if (hasActiveOrder) {
+        alert("Hai già un ordine attivo! Attendi che venga completato prima di ordinare di nuovo.");
+        return;
+    }
+    
     const existingItem = cart.find(i => i.id === item.id);
 
     if (existingItem) {
@@ -120,11 +127,9 @@ function removeItem(itemId) {
  * Collega gli eventi di delegation ai pulsanti di manipolazione del carrello (+, -, Rimuovi) nel Modale.
  */
 function attachCartEventListeners() {
-    // Si usa il delegation event listener sull'elemento genitore (cartList)
     cartList.onclick = (e) => {
-        // Cerca il pulsante più vicino con la classe .cart-btn
         const button = e.target.closest('.cart-btn');
-        if (!button) return; // Non è un pulsante del carrello
+        if (!button) return;
 
         const itemId = button.dataset.id;
 
@@ -153,7 +158,8 @@ function renderCart() {
         cartList.innerHTML = '<li style="text-align: center; color: #6c757d; padding: 20px;">Il carrello è vuoto. Aggiungi qualcosa dal menu!</li>';
         sendOrderBtn.disabled = true;
     } else {
-        sendOrderBtn.disabled = false;
+        // IMPORTANTE: Disabilita il pulsante se c'è un ordine attivo
+        sendOrderBtn.disabled = hasActiveOrder;
     }
     
     cart.forEach(item => {
@@ -162,7 +168,7 @@ function renderCart() {
         itemCount += item.quantity;
 
         const li = document.createElement('li');
-        li.className = 'cart-item'; // Classe dal CSS moderno
+        li.className = 'cart-item';
         li.dataset.id = item.id;
         li.innerHTML = `
             <div class="item-details">
@@ -179,7 +185,6 @@ function renderCart() {
         cartList.appendChild(li);
     });
 
-    // Aggiornamento Totali nel Modale e nella Barra Fissa
     const formattedTotal = total.toFixed(2);
     totalPriceSpan.textContent = formattedTotal;
     cartItemCount.textContent = itemCount;
@@ -196,6 +201,7 @@ function renderCart() {
  */
 async function checkActiveOrder() {
     try {
+        // Query per trovare ordini ATTIVI (pending o executed) per questo tavolo
         const snapshot = await db.collection('orders')
             .where('tableId', '==', tableId)
             .where('status', 'in', ['pending', 'executed'])
@@ -208,6 +214,11 @@ async function checkActiveOrder() {
             activeOrderId = orderDoc.id;
             const orderData = orderDoc.data();
             
+            console.log('Ordine attivo trovato:', activeOrderId, orderData);
+            
+            // IMPOSTA IL FLAG
+            hasActiveOrder = true;
+            
             // Mostra l'ordine attivo e blocca il menu
             displayActiveOrder(orderData);
             disableOrdering();
@@ -215,12 +226,18 @@ async function checkActiveOrder() {
             // Avvia il listener in tempo reale per questo ordine
             listenToOrderUpdates(activeOrderId);
         } else {
+            console.log('Nessun ordine attivo trovato per il tavolo:', tableId);
             // Nessun ordine attivo, permetti nuovi ordini
+            hasActiveOrder = false;
             activeOrderId = null;
             enableOrdering();
+            hideActiveOrderDisplay();
         }
     } catch (error) {
         console.error("Errore nel controllo ordini attivi:", error);
+        // In caso di errore, per sicurezza permettiamo di ordinare
+        hasActiveOrder = false;
+        enableOrdering();
     }
 }
 
@@ -233,11 +250,15 @@ function listenToOrderUpdates(orderId) {
         unsubscribeOrderListener();
     }
     
+    console.log('Avvio listener per ordine:', orderId);
+    
     // Crea un nuovo listener
     unsubscribeOrderListener = db.collection('orders').doc(orderId)
         .onSnapshot((doc) => {
             if (!doc.exists) {
-                // L'ordine è stato eliminato
+                console.log('Ordine eliminato dalla dashboard');
+                // L'ordine è stato eliminato dalla dashboard
+                hasActiveOrder = false;
                 activeOrderId = null;
                 enableOrdering();
                 hideActiveOrderDisplay();
@@ -245,17 +266,21 @@ function listenToOrderUpdates(orderId) {
             }
             
             const orderData = doc.data();
+            console.log('Aggiornamento ordine:', orderData.status);
             
-            // Se lo stato è 'completed', rimuovi l'ordine attivo
+            // Se lo stato è 'completed', l'ordine è concluso
             if (orderData.status === 'completed') {
+                console.log('Ordine completato');
+                hasActiveOrder = false;
                 activeOrderId = null;
                 enableOrdering();
                 hideActiveOrderDisplay();
                 if (unsubscribeOrderListener) {
                     unsubscribeOrderListener();
+                    unsubscribeOrderListener = null;
                 }
             } else {
-                // Aggiorna la visualizzazione dello stato
+                // Aggiorna la visualizzazione dello stato (pending -> executed)
                 displayActiveOrder(orderData);
             }
         }, (error) => {
@@ -299,12 +324,14 @@ function displayActiveOrder(orderData) {
         <div class="order-total">
             <strong>Totale: €${orderData.total.toFixed(2)}</strong>
         </div>
-        <p class="order-info">Il tuo ordine verrà servito a breve. Non è possibile effettuare nuovi ordini fino al completamento.</p>
+        <p class="order-info">📌 Il tuo ordine verrà servito a breve. Non è possibile effettuare nuovi ordini fino al completamento di questo.</p>
     `;
     
-    // Inserisci il banner all'inizio del main container
+    // Inserisci il banner all'inizio del body, dopo l'header
     const header = document.querySelector('.menu-header');
-    header.insertAdjacentElement('afterend', banner);
+    if (header && header.parentNode) {
+        header.parentNode.insertBefore(banner, header.nextSibling);
+    }
 }
 
 /**
@@ -321,16 +348,28 @@ function hideActiveOrderDisplay() {
  * Disabilita la possibilità di ordinare (quando c'è già un ordine attivo).
  */
 function disableOrdering() {
-    // Blocca il menu
-    menuContainer.style.opacity = '0.5';
-    menuContainer.style.pointerEvents = 'none';
+    console.log('Disabilitazione ordinazione...');
     
-    // Disabilita i pulsanti
+    // Blocca il menu visivamente
+    if (menuContainer) {
+        menuContainer.style.opacity = '0.5';
+        menuContainer.style.pointerEvents = 'none';
+    }
+    
+    // Disabilita TUTTI i pulsanti "Aggiungi"
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
     });
     
-    // Nascondi la barra fissa del carrello
+    // Disabilita il pulsante di invio ordine
+    if (sendOrderBtn) {
+        sendOrderBtn.disabled = true;
+        sendOrderBtn.innerHTML = '<i class="fas fa-lock"></i> Ordine già attivo';
+    }
+    
+    // Nascondi la barra fissa del carrello (non serve più)
     const cartBar = document.getElementById('cart-fixed-bar');
     if (cartBar) {
         cartBar.style.display = 'none';
@@ -341,14 +380,26 @@ function disableOrdering() {
  * Riabilita la possibilità di ordinare.
  */
 function enableOrdering() {
-    // Sblocca il menu
-    menuContainer.style.opacity = '1';
-    menuContainer.style.pointerEvents = 'auto';
+    console.log('Riabilitazione ordinazione...');
     
-    // Riabilita i pulsanti
+    // Sblocca il menu
+    if (menuContainer) {
+        menuContainer.style.opacity = '1';
+        menuContainer.style.pointerEvents = 'auto';
+    }
+    
+    // Riabilita i pulsanti "Aggiungi"
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
     });
+    
+    // Riabilita il pulsante di invio (se c'è qualcosa nel carrello)
+    if (sendOrderBtn) {
+        sendOrderBtn.disabled = cart.length === 0;
+        sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine al Bar';
+    }
     
     // Mostra la barra fissa del carrello
     const cartBar = document.getElementById('cart-fixed-bar');
@@ -356,7 +407,7 @@ function enableOrdering() {
         cartBar.style.display = 'block';
     }
     
-    // Pulisci il carrello locale
+    // Pulisci il carrello locale (l'ordine precedente è concluso)
     cart = [];
     renderCart();
 }
@@ -483,7 +534,7 @@ async function fetchMenu() {
         renderCategoryNavigation(menuStructure);
         renderMenu(menuStructure);
         
-        // Controlla se c'è un ordine attivo dopo aver caricato il menu
+        // IMPORTANTE: Controlla se c'è un ordine attivo DOPO aver caricato il menu
         await checkActiveOrder();
 
     } catch (error) {
@@ -497,13 +548,14 @@ async function fetchMenu() {
  * Invia l'ordine a Firestore.
  */
 async function sendOrder() {
-    if (cart.length === 0) {
-        alert("Il carrello è vuoto!");
+    // DOPPIO CONTROLLO: Previeni invio se c'è già un ordine attivo
+    if (hasActiveOrder) {
+        alert("Hai già un ordine attivo! Attendi che venga completato.");
         return;
     }
     
-    if (activeOrderId) {
-        alert("Hai già un ordine attivo! Attendi che venga completato prima di ordinare di nuovo.");
+    if (cart.length === 0) {
+        alert("Il carrello è vuoto!");
         return;
     }
 
@@ -529,19 +581,25 @@ async function sendOrder() {
     try {
         const docRef = await db.collection('orders').add(orderData);
         activeOrderId = docRef.id;
+        hasActiveOrder = true;
+        
+        console.log('Ordine creato con ID:', activeOrderId);
         
         toggleCartModal(false); 
-        alert(`Ordine inviato con successo! Puoi seguire lo stato dell'ordine nella parte superiore della pagina.`);
+        alert(`✅ Ordine inviato con successo!\n\nPuoi seguire lo stato nella parte superiore della pagina.`);
         
         cart = [];
         renderCart();
         
-        // Controlla immediatamente l'ordine appena creato
-        await checkActiveOrder();
+        // Attendi un attimo prima di controllare (per dare tempo al timestamp)
+        setTimeout(() => {
+            checkActiveOrder();
+        }, 500);
 
     } catch (error) {
         console.error("Errore nell'invio dell'ordine: ", error);
-        alert("Si è verificato un errore durante l'invio dell'ordine.");
+        alert("❌ Errore nell'invio dell'ordine. Riprova.");
+        hasActiveOrder = false;
         activeOrderId = null;
     } finally {
         sendOrderBtn.disabled = false;
@@ -554,8 +612,10 @@ async function sendOrder() {
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Inizializzazione app cliente...');
+    
     getTableIdFromUrl();
-    fetchMenu();
+    fetchMenu(); // Questo chiamerà automaticamente checkActiveOrder() alla fine
     renderCart(); 
 
     sendOrderBtn.addEventListener('click', sendOrder);
