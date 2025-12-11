@@ -1,1849 +1,471 @@
- /* ========================================================= */
-
-
-
-/* 1. Reset & Base */
-
-
-
 /* ========================================================= */
-
-
+/* 1. Reset & Base */
+/* ========================================================= */
 
 :root {
-
-
-
     /* Colori */
-
-
-
     --primary-color: #007bff;
-
-
-
     --secondary-color: #28a745;
-
-
-
     --text-dark: #343a40;
-
-
-
     --bg-light: #f4f6f9;
-
-
-
     --card-bg: #ffffff;
-
-
-
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-
-
-
     --delete-color: #dc3545;
-
-
-
     
-
-
-
     /* Stati Ordine */
-
-
-
     --executed-color: #0056b3;  
-
-
-
     --pending-color: #ffc107;   
-
-
-
     
-
-
-
     /* Layout */
-
-
-
     --header-height: 95px;  
-
-
-
 }
-
-
-
-
-
-
 
 body {
-
-
-
     font-family: 'Roboto', Arial, sans-serif;
-
-
-
     background-color: var(--bg-light);
-
-
-
     color: var(--text-dark);
-
-
-
     line-height: 1.6;
-
-
-
     padding-bottom: 80px;  
-
-
-
 }
-
-
-
-
-
-
 
 a {
-
-
-
     text-decoration: none;
-
-
-
     color: var(--primary-color);
-
-
-
 }
 
-
-
-
-
-
-
 /* ========================================================= */
-
-
-
 /* 2. Header & Navigazione */
-
-
-
 /* ========================================================= */
-
-
-
-
-
-
 
 .menu-header {
-
-
-
     background-color: var(--card-bg);
-
-
-
     color: var(--text-dark);
-
-
-
     padding: 4px 0;  
-
-
-
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-
-
-
     position: fixed;
-
-
-
     top: 0;
-
-
-
     left: 0;
-
-
-
     width: 100%;
-
-
-
     z-index: 1000;
-
-
-
 }
-
-
-
-
-
-
 
 .header-content {
-
-
-
     max-width: 900px;
-
-
-
     margin: 0 auto;
-
-
-
     padding: 0 20px;
-
-
-
     text-align: center;
-
-
-
 }
-
-
-
-
-
-
 
 .menu-header h1 {
-
-
-
     display: none;  
-
-
-
     margin: 0;
-
-
-
 }
-
-
-
-
-
-
 
 .header-content #table-display {
-
-
-
     font-size: 1.3em;  
-
-
-
     font-weight: 500;
-
-
-
     color: var(--text-dark);
-
-
-
     margin: 5px 0 5px;  
-
-
-
 }
-
-
-
-
-
-
 
 .header-content #table-display span {
-
-
-
     font-size: 1.6em;  
-
-
-
     font-weight: 700;
-
-
-
     color: var(--primary-color);  
-
-
-
     display: inline-block;
-
-
-
     margin-left: 5px;
-
-
-
 }
-
-
-
-
-
-
 
 /* Navigazione Categorie (Quick Links) */
-
-
-
 .category-nav {
-
-
-
     display: flex;
-
-
-
     overflow-x: auto;  
-
-
-
     white-space: nowrap;
-
-
-
     padding: 6px 0;  
-
-
-
     background-color: var(--card-bg);
-
-
-
     border-bottom: 1px solid #eee;
-
-
-
-    
-
-
-
     position: sticky;
-
-
-
     top: 45px;  
-
-
-
     z-index: 900;
-
-
-
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-
-
 }
-
-
-
-
-
-
 
 .category-btn {
-
-
-
     display: inline-block;
-
-
-
     padding: 8px 15px;
-
-
-
     margin: 0 4px;
-
-
-
     border-radius: 25px;
-
-
-
     background-color: var(--bg-light);
-
-
-
     color: var(--text-dark);
-
-
-
     font-weight: 500;
-
-
-
     cursor: pointer;
-
-
-
     transition: background-color 0.2s, color 0.2s;
-
-
-
     flex-shrink: 0;  
-
-
-
 }
 
-
-
-
-
-
-
-.category-btn:hover, .category-btn.active {
-
-
-
+.category-btn:hover, 
+.category-btn.active {
     background-color: var(--primary-color);
-
-
-
     color: white;
-
-
-
 }
 
-
-
-
-
-
-
 /* ========================================================= */
-
-
-
 /* 3. Menu Items & Container */
-
-
-
 /* ========================================================= */
-
-
-
-
-
-
 
 #menu-container {
-
-
-
     max-width: 900px;
-
-
-
     padding-top: var(--header-height);  
-
-
-
     margin: 0 auto;
-
-
-
     padding-left: 20px;
-
-
-
     padding-right: 20px;
-
-
-
 }
-
-
-
-
-
-
 
 .menu-category h2 {
-
-
-
     font-size: 2em;
-
-
-
     color: var(--text-dark);
-
-
-
     margin-top: 20px;  
-
-
-
     margin-bottom: 10px;  
-
-
-
 }
-
-
-
-
-
-
 
 .menu-item-card {
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     align-items: center;
-
-
-
     background: var(--card-bg);
-
-
-
     padding: 8px 15px;  
-
-
-
     margin-bottom: 6px;  
-
-
-
     border-radius: 8px;  
-
-
-
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
 /* ========================================================== */
-
-
-
 /* 4. BARRA FISSA CARRELLO */
-
-
-
 /* ========================================================== */
-
-
-
-
-
-
 
 #cart-fixed-bar {
-
-
-
     position: fixed;
-
-
-
     bottom: 0;  
-
-
-
     left: 0;
-
-
-
     width: 100%;
-
-
-
     background-color: var(--secondary-color);  
-
-
-
     z-index: 1000;
-
-
-
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3);  
-
-
-
     padding: 15px 15px;  
-
-
-
     text-align: center;
-
-
-
 }
-
-
-
-
-
-
 
 #toggle-cart-btn {
-
-
-
     width: 100%;
-
-
-
     background: none;
-
-
-
     border: none;
-
-
-
     color: white;
-
-
-
     font-size: 1.3rem;
-
-
-
     font-weight: 700;
-
-
-
     padding: 0;
-
-
-
     display: flex;
-
-
-
     justify-content: center;
-
-
-
     align-items: center;
-
-
-
     cursor: pointer;  
-
-
-
 }
-
-
-
-
-
-
 
 #cart-fixed-bar #cart-fixed-total {
-
-
-
     margin-left: 10px;
-
-
-
 }
-
-
-
-
-
-
 
 #toggle-cart-btn i {
-
-
-
     margin-right: 5px;
-
-
-
 }
 
-
-
-
-
-
-
 /* ========================================================== */
-
-
-
 /* 5. STILI PANNELLO ADMIN (Griglia Tavoli Ultra-Compatta) */
-
-
-
 /* ========================================================== */
-
-
-
-
-
-
 
 /* --- Layout Generale Admin --- */
-
-
-
 .admin-main {
-
-
-
     max-width: 1200px;
-
-
-
     margin: 20px auto;
-
-
-
     padding: 0 20px;
-
-
-
     padding-top: 20px;  
-
-
-
 }
-
-
-
-
-
-
 
 #dashboard-header {
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     align-items: center;
-
-
-
     padding: 10px 15px;
-
-
-
     background-color: #f7f9fc;  
-
-
-
     border-bottom: 1px solid #ddd;
-
-
-
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-
-
-
     position: sticky;
-
-
-
     top: 0;  
-
-
-
     z-index: 100;
-
-
-
 }
-
-
-
-
-
-
 
 #admin-logout-btn {
-
-
-
     padding: 8px 15px;
-
-
-
     background: var(--delete-color);  
-
-
-
     color: white;
-
-
-
     border: none;
-
-
-
     border-radius: 5px;
-
-
-
     cursor: pointer;
-
-
-
     font-weight: bold;
-
-
-
     transition: background-color 0.2s;
-
-
-
 }
-
-
 
 #admin-logout-btn:hover {
-
-
-
     background: #c82333;
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
 
 /* --- Filtri/Controlli --- */
-
-
-
 #order-filters {
-
-
-
     display: flex;
-
-
-
     justify-content: center;
-
-
-
     gap: 15px;
-
-
-
     margin: 25px auto 35px;
-
-
-
     padding: 15px 0;
-
-
-
 }
-
-
-
-
-
-
 
 .filter-btn {
-
-
-
     padding: 12px 25px;
-
-
-
     border: 2px solid #ccc;
-
-
-
     border-radius: 8px;
-
-
-
     background-color: var(--card-bg);
-
-
-
     color: var(--text-dark);
-
-
-
     font-size: 1em;
-
-
-
     font-weight: 600;
-
-
-
     cursor: pointer;
-
-
-
     transition: all 0.2s ease;
-
-
-
 }
-
-
-
-
-
-
 
 .filter-btn[data-view="active"].active {
-
-
-
     background-color: var(--primary-color);
-
-
-
     color: white;
-
-
-
     border-color: var(--primary-color);
-
-
-
     box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
-
-
-
 }
-
-
-
-
-
-
 
 .filter-btn[data-view="history"].active {
-
-
-
     background-color: var(--secondary-color);
-
-
-
     color: white;
-
-
-
     border-color: var(--secondary-color);
-
-
-
     box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
-
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
 /* -------------------------------------------------------------------------- */
-
-
-
 /* GRIGLIA TAVOLI E LAYOUT DASHBOARD */
-
-
-
 /* -------------------------------------------------------------------------- */
-
-
-
-
-
-
 
 #admin-dashboard-layout {
-
-
-
     display: grid;
-
-
-
     grid-template-columns: 1fr; /* Default mobile */
-
-
-
     gap: 20px;
-
-
-
 }
-
-
-
-
-
-
 
 @media (min-width: 900px) {
-
-
-
     #admin-dashboard-layout {
-
-
-
         grid-template-columns: 3fr 1.5fr;  
-
-
-
     }
-
-
-
 }
-
-
-
-
-
-
 
 .hidden {
-
-
-
     display: none !important;
-
-
-
 }
-
-
-
-
-
-
 
 /* --- Griglia dei Tavoli (#tables-grid) --- */
-
-
-
 #tables-grid {
-
-
-
-    /* MODIFICA: Riduco la dimensione minima dei cerchi a 35px */
-
-
-
+    display: grid;
     grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); 
-
-
-
     gap: 8px; 
-
-
-
     padding: 20px;
-
-
-
     background-color: var(--card-bg);
-
-
-
     border-radius: 12px;
-
-
-
     box-shadow: var(--shadow);
-
-
-
 }
-
-
-
-
-
-
 
 .table-btn {
-
-
-
     width: 100%;
-
-
-
     padding-top: 100%; /* Forza l'aspetto quadrato */
-
-
-
     position: relative;
-
-
-
-    border: 2px solid #ccc; /* RIDOTTO: 2px */
-
-
-
+    border: 2px solid #ccc;
     border-radius: 50%;  
-
-
-
-    /* RIPRISTINATO: Font size a 1.0em */
-
-
-
     font-size: 1.0em; 
-
-
-
     font-weight: 800;
-
-
-
     cursor: pointer;
-
-
-
     transition: all 0.2s ease-in-out;
-
-
-
 }
-
-
-
-
-
-
 
 /* Contenuto centrato */
-
-
-
 .table-btn::before {
-
-
-
     content: attr(data-table);
-
-
-
     position: absolute;
-
-
-
     top: 50%;
-
-
-
     left: 50%;
-
-
-
     transform: translate(-50%, -50%);
-
-
-
     line-height: 1;  
-
-
-
 }
-
-
-
-
-
-
 
 /* Colori e Stati */
-
-
-
 .table-btn.free {
-
-
-
     background-color: #f7f7f7;
-
-
-
     border-color: #ddd;
-
-
-
     color: #495057;
-
-
-
 }
-
-
-
-
-
-
 
 .table-btn.pending {
-
-
-
     background-color: var(--pending-color) !important;  
-
-
-
     border-color: #e0a800;
-
-
-
     color: var(--text-dark);  
-
-
-
 }
-
-
-
-
-
-
 
 .table-btn.executed {
-
-
-
     background-color: var(--executed-color) !important;  
-
-
-
     border-color: #004085;
-
-
-
     color: white;  
-
-
-
     animation: pulse-executed 1.5s infinite;
-
-
-
 }
-
-
-
-
-
-
 
 .table-btn.selected {
-
-
-
     box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.7);  
-
-
-
     transform: scale(1.05);  
-
-
-
 }
-
-
-
-
-
-
 
 @keyframes pulse-executed {
-
-
-
     0% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0.4); }
-
-
-
     70% { box-shadow: 0 0 0 10px rgba(0, 86, 179, 0); }
-
-
-
     100% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0); }
-
-
-
 }
-
-
-
-
-
-
 
 /* --- Pannello Dettagli Ordine & Storico --- */
-
-
-
 #order-details {
-
-
-
     padding: 20px;
-
-
-
     background-color: var(--card-bg);
-
-
-
     border-radius: 12px;
-
-
-
     box-shadow: var(--shadow);
-
-
-
 }
-
-
-
-
-
-
 
 #orders-container-history {
-
-
-
     display: grid;
-
-
-
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  
-
-
-
     gap: 25px;
-
-
-
     padding: 0;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card {
-
-
-
     padding: 0;  
-
-
-
     border-radius: 12px;
-
-
-
     box-shadow: var(--shadow);
-
-
-
     overflow: hidden;
-
-
-
     background-color: var(--card-bg);
-
-
-
 }
-
-
-
-
-
-
 
 .history-card {
-
-
-
     opacity: 0.8;
-
-
-
 }
-
-
-
-
-
-
 
 /* Stili comuni per Header, Items e Footer delle Card Ordine/Storico */
-
-
-
 .order-card .card-header {
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     align-items: center;
-
-
-
     padding: 15px;
-
-
-
     border-bottom: 1px solid #eee;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-items {
-
-
-
     list-style: none;
-
-
-
     padding: 15px;
-
-
-
     margin: 0;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-items li {
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     padding: 5px 0;
-
-
-
     font-size: 1.05em;
-
-
-
     border-bottom: 1px dashed #f1f1f1;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-items li:last-child {
-
-
-
     border-bottom: none;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-note-display {
-
-
-
     padding: 15px;
-
-
-
     margin: 0 15px 15px;
-
-
-
     border-left: 5px solid var(--pending-color);
-
-
-
     background-color: #fffbe6;
-
-
-
     border-radius: 4px;
-
-
-
     font-size: 0.9em;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-footer {
-
-
-
     display: flex;
-
-
-
     justify-content: space-between;
-
-
-
     align-items: center;
-
-
-
     padding: 15px;
-
-
-
     border-top: 1px solid #eee;
-
-
-
     background-color: #f7f9fc;
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .order-footer strong {
-
-
-
     font-size: 1.2em;
-
-
-
     color: var(--text-dark);
-
-
-
 }
-
-
-
-
-
-
 
 .order-card .empty-message {
-
-
-
     text-align: center;
-
-
-
     padding: 40px 20px;
-
-
-
     color: #6c757d;
-
-
-
     font-style: italic;
-
-
-
 }
-
-
-
-
-
-
 
 /* Linee colorate in base allo stato */
+.order-card.pending { 
+    border-top: 5px solid var(--pending-color); 
+}
 
+.order-card.executed { 
+    border-top: 5px solid var(--executed-color); 
+}
 
-
-.order-card.pending { border-top: 5px solid var(--pending-color); }  
-
-
-
-.order-card.executed { border-top: 5px solid var(--executed-color); }  
-
-
-
-.order-card.completed { border-top: 5px solid var(--secondary-color); opacity: 0.9; }
-
-
-
-
-
-
-
-
-
-
+.order-card.completed { 
+    border-top: 5px solid var(--secondary-color); 
+    opacity: 0.9; 
+}
 
 /* --- Stili Pulsanti Azione Dettaglio --- */
-
-
-
-
-
-
-
 .update-status-btn {
-
-
-
     padding: 10px 18px;
-
-
-
     border-radius: 4px;
-
-
-
     font-size: 0.95em;
-
-
-
     font-weight: 600;
-
-
-
     border: none;
-
-
-
     color: white;
-
-
-
     cursor: pointer;
-
-
-
     transition: background-color 0.2s;
-
-
-
 }
-
-
-
-
-
-
 
 .update-status-btn.btn-executed {
-
-
-
     background-color: var(--executed-color);  
-
-
-
 }
-
-
 
 .update-status-btn.btn-executed:hover {
-
-
-
     background-color: #003366;
-
-
-
 }
-
-
-
-
-
-
 
 .update-status-btn.btn-completed {
-
-
-
     background-color: var(--secondary-color);
-
-
-
 }
-
-
 
 .update-status-btn.btn-completed:hover {
-
-
-
     background-color: #1e7e34;
-
-
-
 }
 
-
-
-
-
-
-
 /* Messaggi di stato */
-
-
-
 .loading-state {
-
-
-
     text-align: center;
-
-
-
     padding: 50px;
-
-
-
     font-size: 1.2em;
-
-
-
-    color: var(--primary-color);
+    color: #6c757d;
+}
