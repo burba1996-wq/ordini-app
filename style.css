@@ -12,11 +12,11 @@
     --delete-color: #dc3545;
     
     /* Stati Ordine */
-    --executed-color: #0056b3; 
-    --pending-color: #ffc107; 
+    --executed-color: #0056b3;  
+    --pending-color: #ffc107;   
     
     /* Layout */
-    --header-height: 95px; 
+    --header-height: 95px;  
 }
 
 body {
@@ -24,7 +24,7 @@ body {
     background-color: var(--bg-light);
     color: var(--text-dark);
     line-height: 1.6;
-    padding-bottom: 80px; 
+    padding-bottom: 80px;  
 }
 
 a {
@@ -39,7 +39,7 @@ a {
 .menu-header {
     background-color: var(--card-bg);
     color: var(--text-dark);
-    padding: 4px 0; 
+    padding: 4px 0;  
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     position: fixed;
     top: 0;
@@ -56,21 +56,21 @@ a {
 }
 
 .menu-header h1 {
-    display: none; 
+    display: none;  
     margin: 0;
 }
 
 .header-content #table-display {
-    font-size: 1.3em; 
+    font-size: 1.3em;  
     font-weight: 500;
     color: var(--text-dark);
-    margin: 5px 0 5px; 
+    margin: 5px 0 5px;  
 }
 
 .header-content #table-display span {
-    font-size: 1.6em; 
+    font-size: 1.6em;  
     font-weight: 700;
-    color: var(--primary-color); 
+    color: var(--primary-color);  
     display: inline-block;
     margin-left: 5px;
 }
@@ -78,14 +78,14 @@ a {
 /* Navigazione Categorie (Quick Links) */
 .category-nav {
     display: flex;
-    overflow-x: auto; 
+    overflow-x: auto;  
     white-space: nowrap;
-    padding: 6px 0; 
+    padding: 6px 0;  
     background-color: var(--card-bg);
     border-bottom: 1px solid #eee;
     
     position: sticky;
-    top: 45px; 
+    top: 45px;  
     z-index: 900;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -100,7 +100,7 @@ a {
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
-    flex-shrink: 0; 
+    flex-shrink: 0;  
 }
 
 .category-btn:hover, .category-btn.active {
@@ -114,7 +114,7 @@ a {
 
 #menu-container {
     max-width: 900px;
-    padding-top: var(--header-height); 
+    padding-top: var(--header-height);  
     margin: 0 auto;
     padding-left: 20px;
     padding-right: 20px;
@@ -123,8 +123,8 @@ a {
 .menu-category h2 {
     font-size: 2em;
     color: var(--text-dark);
-    margin-top: 20px; 
-    margin-bottom: 10px; 
+    margin-top: 20px;  
+    margin-bottom: 10px;  
 }
 
 .menu-item-card {
@@ -132,9 +132,9 @@ a {
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    padding: 8px 15px; 
-    margin-bottom: 6px; 
-    border-radius: 8px; 
+    padding: 8px 15px;  
+    margin-bottom: 6px;  
+    border-radius: 8px;  
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
@@ -145,13 +145,13 @@ a {
 
 #cart-fixed-bar {
     position: fixed;
-    bottom: 0; 
+    bottom: 0;  
     left: 0;
     width: 100%;
-    background-color: var(--secondary-color); 
+    background-color: var(--secondary-color);  
     z-index: 1000;
-    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3); 
-    padding: 15px 15px; 
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.3);  
+    padding: 15px 15px;  
     text-align: center;
 }
 
@@ -166,7 +166,7 @@ a {
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer; 
+    cursor: pointer;  
 }
 
 #cart-fixed-bar #cart-fixed-total {
@@ -186,7 +186,7 @@ a {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 20px;
-    padding-top: 20px; 
+    padding-top: 20px;  
 }
 
 #dashboard-header {
@@ -194,17 +194,17 @@ a {
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background-color: #f7f9fc; 
+    background-color: #f7f9fc;  
     border-bottom: 1px solid #ddd;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     position: sticky;
-    top: 0; 
+    top: 0;  
     z-index: 100;
 }
 
 #admin-logout-btn {
     padding: 8px 15px;
-    background: var(--delete-color); 
+    background: var(--delete-color);  
     color: white;
     border: none;
     border-radius: 5px;
@@ -265,7 +265,7 @@ a {
 
 @media (min-width: 900px) {
     #admin-dashboard-layout {
-        grid-template-columns: 3fr 1.5fr; 
+        grid-template-columns: 3fr 1.5fr;  
     }
 }
 
@@ -275,9 +275,9 @@ a {
 
 /* --- Griglia dei Tavoli (#tables-grid) --- */
 #tables-grid {
-    /* Tavoli il più piccoli possibile */
-    grid-template-columns: repeat(auto-fit, minmax(45px, 1fr)); /* RIDOTTO: 45px */
-    gap: 8px; /* RIDOTTO: 8px */
+    /* MODIFICA 1: Riduco la dimensione minima dei cerchi a 35px */
+    grid-template-columns: repeat(auto-fit, minmax(35px, 1fr)); 
+    gap: 8px; 
     padding: 20px;
     background-color: var(--card-bg);
     border-radius: 12px;
@@ -289,8 +289,9 @@ a {
     padding-top: 100%; /* Forza l'aspetto quadrato */
     position: relative;
     border: 2px solid #ccc; /* RIDOTTO: 2px */
-    border-radius: 50%; 
-    font-size: 1.0em; /* RIDOTTO: 1.0em */
+    border-radius: 50%;  
+    /* MODIFICA 2: Riduco la dimensione del testo all'interno del cerchio */
+    font-size: 0.8em; 
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -303,7 +304,7 @@ a {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    line-height: 1; 
+    line-height: 1;  
 }
 
 /* Colori e Stati */
@@ -314,21 +315,21 @@ a {
 }
 
 .table-btn.pending {
-    background-color: var(--pending-color) !important; 
+    background-color: var(--pending-color) !important;  
     border-color: #e0a800;
-    color: var(--text-dark); 
+    color: var(--text-dark);  
 }
 
 .table-btn.executed {
-    background-color: var(--executed-color) !important; 
+    background-color: var(--executed-color) !important;  
     border-color: #004085;
-    color: white; 
+    color: white;  
     animation: pulse-executed 1.5s infinite;
 }
 
 .table-btn.selected {
-    box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.7); 
-    transform: scale(1.05); 
+    box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.7);  
+    transform: scale(1.05);  
 }
 
 @keyframes pulse-executed {
@@ -347,13 +348,13 @@ a {
 
 #orders-container-history {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));  
     gap: 25px;
     padding: 0;
 }
 
 .order-card {
-    padding: 0; 
+    padding: 0;  
     border-radius: 12px;
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -422,8 +423,8 @@ a {
 }
 
 /* Linee colorate in base allo stato */
-.order-card.pending { border-top: 5px solid var(--pending-color); } 
-.order-card.executed { border-top: 5px solid var(--executed-color); } 
+.order-card.pending { border-top: 5px solid var(--pending-color); }  
+.order-card.executed { border-top: 5px solid var(--executed-color); }  
 .order-card.completed { border-top: 5px solid var(--secondary-color); opacity: 0.9; }
 
 
@@ -441,7 +442,7 @@ a {
 }
 
 .update-status-btn.btn-executed {
-    background-color: var(--executed-color); 
+    background-color: var(--executed-color);  
 }
 .update-status-btn.btn-executed:hover {
     background-color: #003366;
