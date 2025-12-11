@@ -11,6 +11,117 @@
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
     
+    <style>
+        /* Stili per la Card Menu */
+        .menu-item-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Stili per le Checkbox (Opzioni) */
+        .item-options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 5px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .option-label {
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-label input[type="checkbox"] {
+            margin-right: 5px;
+            /* Nasconde l'input e usa lo stile del label per l'interazione */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            top: 1px;
+        }
+
+        .option-label input[type="checkbox"]:checked {
+            background-color: #007bff; /* Colore primario */
+            border-color: #007bff;
+        }
+        
+        /* Aggiunge il segno di spunta se selezionato */
+        .option-label input[type="checkbox"]:checked::after {
+            content: "\f00c"; /* Icona di spunta FontAwesome */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+        }
+
+        /* Effetto visivo al passaggio del mouse o al check */
+        .option-label:has(input[type="checkbox"]:checked) {
+            background-color: #cce0ff; 
+            font-weight: bold;
+        }
+
+        .add-to-cart-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #218838;
+        }
+        
+        /* Stili per il carrello */
+        .item-options-display {
+            display: block;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 2px;
+        }
+        
+        /* Aggiungi qui gli stili generici mancanti dal tuo file style.css */
+        /* ... */
+
+    </style>
     <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
@@ -29,9 +140,9 @@
         </div>
         
         <nav id="quick-links" class="category-nav">
-        </nav>
+            </nav>
     </header>
-    <main> 
+    <main>  
         <section id="menu-container" style="pointer-events: none; opacity: 0.5;"> 
             <div class="loading-state">
                 <i class="fas fa-hand-pointer"></i>
@@ -41,18 +152,19 @@
         <div id="order-anchor-point" style="height: 1px;"></div> 
     </main>
     
-    <section id="cart-fixed-bar-staff">
+    <section id="cart-fixed-bar-staff" class="hidden"> 
         <button id="toggle-full-cart-btn">
             <i class="fas fa-shopping-cart"></i>
             Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
         </button>
     </section>
+    
     <section id="full-cart-details" class="hidden-cart">
         <div id="cart-inner-full">
             <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
             
             <ul id="cart-list">
-            </ul>
+                </ul>
             
             <div class="order-notes-section">
                 <label for="order-notes">Note per l'Ordine (Allergie, modifiche...):</label>
