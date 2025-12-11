@@ -244,12 +244,23 @@ a {
 .active-order-banner {
     max-width: 900px;
     margin: 100px auto 20px auto; 
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    border-left: 5px solid var(--primary-color);
+    padding: 12px;  /* ⬇️ RIDOTTO da 15px a 12px */
+    border-radius: 8px;  /* ⬇️ RIDOTTO da 12px a 8px */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);  /* ⬇️ Shadow più leggera */
+    border-left: 4px solid var(--primary-color);  /* ⬇️ RIDOTTO da 5px a 4px */
     background: var(--card-bg);
     animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Header status ottimizzato */
@@ -257,40 +268,53 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;  /* ⬇️ RIDOTTO da 15px a 10px */
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;  /* ⬇️ RIDOTTO da 10px a 8px */
 }
 
 .order-status-header h3 {
     margin: 0;
-    font-size: 1.3em;
+    font-size: 1.15em;  /* ⬇️ RIDOTTO da 1.3em a 1.15em */
     color: var(--text-dark);
+    font-weight: 700;
 }
 
 .status-badge {
-    padding: 6px 16px;
-    border-radius: 20px;
+    padding: 5px 14px;  /* ⬇️ RIDOTTO da 6px 16px */
+    border-radius: 16px;  /* ⬇️ RIDOTTO da 20px a 16px */
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 0.85em;  /* ⬇️ RIDOTTO da 0.9em a 0.85em */
     white-space: nowrap;
+}
+
+.status-badge.status-pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-badge.status-executed {
+    background: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
 }
 
 /* Lista items con migliore gestione spazio */
 .order-items-list {
-    margin: 15px 0;
-    padding: 12px;
+    margin: 10px 0;  /* ⬇️ RIDOTTO da 15px a 10px */
+    padding: 10px;  /* ⬇️ RIDOTTO da 12px a 10px */
     background: var(--bg-light);
-    border-radius: 8px;
+    border-radius: 6px;  /* ⬇️ RIDOTTO da 8px a 6px */
 }
 
 .order-item-row {
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: 6px 0;  /* ⬇️ RIDOTTO da 8px a 6px */
     border-bottom: 1px dashed #dee2e6;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .order-item-row:last-child {
@@ -302,33 +326,40 @@ a {
     color: var(--text-dark);
     flex: 1;
     word-wrap: break-word;
+    font-size: 0.95em;  /* ⬇️ RIDOTTO leggermente */
 }
 
 .order-item-row span:last-child {
     font-weight: 600;
     color: var(--primary-color);
     white-space: nowrap;
+    font-size: 0.95em;  /* ⬇️ RIDOTTO leggermente */
 }
 
 /* Note ordine */
 .order-notes {
     background: #fff3cd;
-    padding: 10px 12px;
-    border-radius: 6px;
-    margin: 15px 0;
-    font-size: 0.95em;
-    border-left: 4px solid #ffc107;
+    padding: 8px 10px;  /* ⬇️ RIDOTTO da 10px 12px */
+    border-radius: 5px;  /* ⬇️ RIDOTTO da 6px a 5px */
+    margin: 10px 0;  /* ⬇️ RIDOTTO da 15px a 10px */
+    font-size: 0.9em;  /* ⬇️ RIDOTTO da 0.95em a 0.9em */
+    border-left: 3px solid #ffc107;  /* ⬇️ RIDOTTO da 4px a 3px */
     word-wrap: break-word;
+}
+
+.order-notes strong {
+    color: #856404;
 }
 
 /* Totale ordine */
 .order-total {
-    font-size: 1.2em;
+    font-size: 1.15em;  /* ⬇️ RIDOTTO da 1.2em a 1.15em */
     text-align: right;
-    margin-top: 15px;
-    padding-top: 12px;
+    margin-top: 10px;  /* ⬇️ RIDOTTO da 15px a 10px */
+    padding-top: 10px;  /* ⬇️ RIDOTTO da 12px a 10px */
     border-top: 2px solid #dee2e6;
     color: var(--text-dark);
+    font-weight: 700;
 }
 
 /* Info aggiuntive */
@@ -336,11 +367,11 @@ a {
     text-align: center;
     color: #6c757d;
     font-style: italic;
-    margin-top: 15px;
-    padding: 8px;
+    margin-top: 10px;  /* ⬇️ RIDOTTO da 15px a 10px */
+    padding: 6px;  /* ⬇️ RIDOTTO da 8px a 6px */
     background: #f8f9fa;
-    border-radius: 6px;
-    font-size: 0.85em;
+    border-radius: 5px;  /* ⬇️ RIDOTTO da 6px a 5px */
+    font-size: 0.8em;  /* ⬇️ RIDOTTO da 0.85em a 0.8em */
 }
 
 /* ========================================================== */
@@ -350,69 +381,83 @@ a {
 /* Dispositivi molto piccoli (< 375px) */
 @media (max-width: 374px) {
     .active-order-banner {
-        margin: 95px 8px 15px 8px;
-        padding: 12px;
+        margin: 95px 5px 12px 5px;  /* ⬇️ Margini ancora più ridotti */
+        padding: 10px;  /* ⬇️ RIDOTTO da 12px a 10px */
+    }
+    
+    .order-status-header {
+        margin-bottom: 8px;
+        gap: 6px;
     }
     
     .order-status-header h3 {
-        font-size: 1.05em;
+        font-size: 1em;  /* ⬇️ RIDOTTO da 1.15em a 1em */
     }
     
     .status-badge {
-        font-size: 0.8em;
-        padding: 5px 12px;
+        font-size: 0.75em;  /* ⬇️ RIDOTTO */
+        padding: 4px 10px;
     }
     
     .order-items-list {
-        padding: 10px;
+        padding: 8px;  /* ⬇️ RIDOTTO */
+        margin: 8px 0;
     }
     
     .order-item-row {
-        font-size: 0.9em;
-        padding: 6px 0;
+        font-size: 0.85em;  /* ⬇️ RIDOTTO */
+        padding: 5px 0;
     }
     
     .order-notes {
-        font-size: 0.85em;
-        padding: 8px 10px;
+        font-size: 0.8em;
+        padding: 6px 8px;
+        margin: 8px 0;
     }
     
     .order-total {
-        font-size: 1.1em;
+        font-size: 1.05em;
+        margin-top: 8px;
+        padding-top: 8px;
     }
     
     .order-info {
-        font-size: 0.8em;
+        font-size: 0.75em;
+        padding: 5px;
+        margin-top: 8px;
     }
 }
 
 /* Smartphone standard (375px - 600px) */
 @media (max-width: 600px) {
     .active-order-banner {
-        margin: 95px 10px 15px 10px;
-        padding: 15px;
+        margin: 95px 8px 15px 8px;  /* ⬇️ Margini ridotti */
+        padding: 11px;
     }
     
     .order-status-header {
         flex-direction: column;
         align-items: flex-start;
+        margin-bottom: 9px;
     }
     
     .order-status-header h3 {
-        font-size: 1.15em;
+        font-size: 1.1em;  /* ⬇️ RIDOTTO da 1.15em */
     }
     
     .status-badge {
         align-self: flex-start;
-        font-size: 0.85em;
+        font-size: 0.8em;
     }
     
     .order-items-list {
-        padding: 12px;
+        padding: 9px;
+        margin: 9px 0;
     }
     
     .order-item-row {
-        font-size: 0.95em;
+        font-size: 0.9em;
+        padding: 5px 0;
     }
     
     .order-item-row span:first-child {
@@ -420,31 +465,42 @@ a {
     }
     
     .order-notes {
-        font-size: 0.9em;
+        font-size: 0.85em;
+        padding: 7px 9px;
+        margin: 9px 0;
     }
     
     .order-total {
-        font-size: 1.15em;
+        font-size: 1.1em;
+        margin-top: 9px;
+        padding-top: 9px;
+    }
+    
+    .order-info {
+        font-size: 0.78em;
+        padding: 5px;
+        margin-top: 9px;
     }
 }
 
 /* Tablet piccoli (601px - 768px) */
 @media (min-width: 601px) and (max-width: 768px) {
     .active-order-banner {
-        margin: 100px 15px 20px 15px;
-        padding: 18px;
+        margin: 100px 12px 18px 12px;
+        padding: 14px;
     }
     
     .order-status-header {
         flex-direction: row;
+        margin-bottom: 12px;
     }
     
     .order-status-header h3 {
-        font-size: 1.25em;
+        font-size: 1.2em;
     }
     
     .order-item-row {
-        font-size: 1em;
+        font-size: 0.98em;
     }
 }
 
