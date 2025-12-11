@@ -1,403 +1,611 @@
 <!DOCTYPE html>
+
 <html lang="it">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff | Presa Ordini</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
-    
-    <link rel="stylesheet" href="style.css"> 
 
-    <style>
-        /* ========================================= */
-        /* CORREZIONI HEADER MOBILE - INIZIO */
-        /* ========================================= */
+    <meta charset="UTF-8">
 
-        /* Rende l'intero header fisso in alto */
-        .menu-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #f8f9fa; /* Sfondo chiaro per nascondere lo scroll sottostante */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            z-index: 100; /* Alto z-index per essere sopra il menu */
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Allinea i contenuti principali (Titolo e Logout) */
-        .header-content {
-            padding: 10px 15px 5px 15px; /* Riduci il padding verticale */
-        }
-        .header-main-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
+    <title>Staff | Presa Ordini</title>
 
-        /* Riduci la dimensione del titolo su mobile */
-        .menu-header h1 {
-            font-size: 1.3em; /* Più compatto */
-            margin: 0;
-        }
+    
 
-        /* Compattiamo i controlli del tavolo in una sola riga se possibile */
-        .header-table-controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9em;
-            padding: 5px 0;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
-        .header-table-controls label,
-        .header-table-controls p {
-            margin: 0;
-        }
-        .header-table-controls p {
-            margin-left: 10px !important;
-        }
+    
 
-        /* Quick Links orizzontali e compatti */
-        .category-nav {
-            display: flex;
-            overflow-x: auto; /* Permette lo scroll orizzontale */
-            padding: 5px 15px 5px 15px;
-            gap: 10px;
-            white-space: nowrap; /* Impedisce che i bottoni vadano a capo */
-            border-top: 1px solid #ddd;
-            /* Rimuovi la barra di scorrimento su mobile per estetica */
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-        }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-        .category-nav::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
-        }
+    
 
-        .category-btn {
-            /* Assumi che i bottoni siano già stilizzati nel tuo style.css */
-            flex-shrink: 0; /* Impedisce che si rimpiccioliscano */
-            padding: 6px 10px; /* Bottone più piccolo */
-            font-size: 0.85em;
-        }
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
 
-        /* Contenuto principale: deve scendere sotto l'header fisso */
-        main {
-            /* Valore approssimativo dell'altezza totale dell'header compattato */
-            padding-top: 120px; /* REGOLARE SE NECESSARIO (circa 120px in mobile) */
-            padding-bottom: 70px; /* Spazio per la barra fissa del carrello in basso */
-        }
+    
 
-        @media (min-width: 768px) {
-            /* Su desktop, l'header può essere più grande, e l'header-table-controls può essere più spazioso */
-            .menu-header h1 {
-                font-size: 1.5em;
-            }
-            main {
-                padding-top: 100px; /* Riduci il padding su desktop se l'header è meno compatto ma più largo */
-            }
-            .category-nav {
-                justify-content: center; /* Centra i link su desktop */
-            }
-        }
-        
-        /* ========================================= */
-        /* CORREZIONI HEADER MOBILE - FINE */
-        /* ========================================= */
+    <link rel="stylesheet" href="style.css"> 
 
-        /* ========================================= */
-        /* Stili Critici per Carrello (Risoluzione Bug) */
-        /* ========================================= */
 
-        /* Nascondi lo scrollbar principale quando il carrello è aperto */
-        body.no-scroll {
-            overflow: hidden;
-        }
 
-        /* BARRA CARRELLO FISSA IN BASSO */
-        #cart-fixed-bar-staff {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #007bff; /* Colore Primario */
-            color: white;
-            padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            z-index: 50; /* Sotto il carrello full */
-        }
-        #cart-fixed-bar-staff.hidden {
-            display: none; /* Nasconde quando il carrello è vuoto (gestito da JS) */
-        }
-        #toggle-full-cart-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.1em;
-            cursor: pointer;
-            width: 100%;
-            padding: 5px;
-        }
+    <style>
 
-        /* RIEPILOGO CARRELLO COMPLETO (MODAL/SIDEBAR) */
-        #full-cart-details {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000; /* Assicurati che sia sopra ogni cosa */
-            background-color: rgba(0, 0, 0, 0.5); /* Overlay scuro */
-            transition: transform 0.3s ease-out; /* Per animazione */
-        }
-        #full-cart-details.hidden-cart {
-            /* Nascondimento completo */
-            transform: translateX(100%);
-            /* Uso pointer-events: none per disabilitare l'interazione */
-            pointer-events: none; 
-        }
+        /* ========================================= */
 
-        #cart-inner-full {
-            /* Contenitore interno del riepilogo (la "sidebar" bianca) */
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%; /* Larghezza mobile */
-            max-width: 400px; /* Larghezza desktop */
-            height: 100%;
-            background-color: white;
-            padding: 20px;
-            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            position: relative; /* Importante per posizionare il bottone X */
-        }
-        
-        /* --- STILE PULSANTE CHIUSURA AGGIUNTO --- */
-        .close-cart-desktop-btn {
-            position: absolute; 
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 2em; /* Abbastanza grande per l'estetica desktop */
-            font-weight: 300;
-            line-height: 1;
-            color: #aaa;
-            cursor: pointer;
-            transition: color 0.2s;
-            display: none; /* Nascondi di default su mobile */
-            z-index: 10;
-        }
+        /* Stili Critici per Carrello (Risoluzione Bug) */
 
-        .close-cart-desktop-btn:hover {
-            color: #dc3545; /* Rosso (delete-color) al passaggio */
-        }
+        /* ========================================= */
 
-        @media (min-width: 601px) {
-            .close-cart-desktop-btn {
-                display: block; /* Mostra su desktop */
-            }
-            #cart-inner-full h2 {
-                /* Margine per non sovrapporsi al pulsante X */
-                padding-right: 30px; 
-            }
-        }
-        /* --------------------------------------------- */
-        
-        /* Stili per la lista del carrello */
-        #cart-list {
-            list-style: none;
-            padding: 0;
-            margin: 15px 0;
-        }
 
-        .staff-cart-item-compact {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px dashed #eee;
-        }
-        
-        /* ========================================= */
-        /* Stili per la Card Menu (Già presenti) */
-        /* ========================================= */
 
-        .menu-item-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        /* Nascondi lo scrollbar principale quando il carrello è aperto */
 
-        .item-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.1em;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
+        body.no-scroll {
 
-        /* Stili per le Checkbox (Opzioni) */
-        .item-options-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 5px 0;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-        }
+            overflow: hidden;
 
-        .option-label {
-            background-color: #f0f0f0;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-        }
+        }
 
-        .option-label input[type="checkbox"] {
-            margin-right: 5px;
-            /* Nasconde l'input e usa lo stile del label per l'interazione */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            width: 15px;
-            height: 15px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            top: 1px;
-        }
 
-        .option-label input[type="checkbox"]:checked {
-            background-color: #007bff; /* Colore primario */
-            border-color: #007bff;
-        }
-        
-        /* Aggiunge il segno di spunta se selezionato */
-        .option-label input[type="checkbox"]:checked::after {
-            content: "\f00c"; /* Icona di spunta FontAwesome */
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            color: #fff;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10px;
-        }
 
-        /* Effetto visivo al passaggio del mouse o al check */
-        .option-label:has(input[type="checkbox"]:checked) {
-            background-color: #cce0ff; 
-            font-weight: bold;
-        }
+        /* BARRA CARRELLO FISSA IN BASSO */
 
-        .add-to-cart-btn {
-            background-color: #28a745;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s;
-        }
+        #cart-fixed-bar-staff {
 
-        .add-to-cart-btn:hover {
-            background-color: #218838;
-        }
-        
-        /* Stili per il carrello */
-        .item-options-display {
-            display: block;
-            color: #6c757d;
-            font-style: italic;
-            margin-top: 2px;
-        }
-        
-        /* Altri stili generici che potresti avere nel tuo style.css (header, layout, bottoni, ecc.) */
-        /* ... */
+            position: fixed;
 
-    </style>
+            bottom: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            background-color: #007bff; /* Colore Primario */
+
+            color: white;
+
+            padding: 10px;
+
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+
+            text-align: center;
+
+            z-index: 50; /* Sotto il carrello full */
+
+        }
+
+        #cart-fixed-bar-staff.hidden {
+
+            display: none; /* Nasconde quando il carrello è vuoto (gestito da JS) */
+
+        }
+
+        #toggle-full-cart-btn {
+
+            background: none;
+
+            border: none;
+
+            color: white;
+
+            font-size: 1.1em;
+
+            cursor: pointer;
+
+            width: 100%;
+
+            padding: 5px;
+
+        }
+
+
+
+        /* RIEPILOGO CARRELLO COMPLETO (MODAL/SIDEBAR) */
+
+        #full-cart-details {
+
+            position: fixed;
+
+            top: 0;
+
+            right: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            z-index: 1000; /* Assicurati che sia sopra ogni cosa */
+
+            background-color: rgba(0, 0, 0, 0.5); /* Overlay scuro */
+
+            transition: transform 0.3s ease-out; /* Per animazione */
+
+        }
+
+        #full-cart-details.hidden-cart {
+
+            /* Nascondimento completo */
+
+            transform: translateX(100%);
+
+            /* Uso pointer-events: none per disabilitare l'interazione */
+
+            pointer-events: none; 
+
+        }
+
+
+
+        #cart-inner-full {
+
+            /* Contenitore interno del riepilogo (la "sidebar" bianca) */
+
+            position: absolute;
+
+            top: 0;
+
+            right: 0;
+
+            width: 100%; /* Larghezza mobile */
+
+            max-width: 400px; /* Larghezza desktop */
+
+            height: 100%;
+
+            background-color: white;
+
+            padding: 20px;
+
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+
+            overflow-y: auto;
+
+            position: relative; /* Importante per posizionare il bottone X */
+
+        }
+
+        
+
+        /* --- STILE PULSANTE CHIUSURA AGGIUNTO --- */
+
+        .close-cart-desktop-btn {
+
+            position: absolute; 
+
+            top: 10px;
+
+            right: 10px;
+
+            background: none;
+
+            border: none;
+
+            font-size: 2em; /* Abbastanza grande per l'estetica desktop */
+
+            font-weight: 300;
+
+            line-height: 1;
+
+            color: #aaa;
+
+            cursor: pointer;
+
+            transition: color 0.2s;
+
+            display: none; /* Nascondi di default su mobile */
+
+            z-index: 10;
+
+        }
+
+
+
+        .close-cart-desktop-btn:hover {
+
+            color: #dc3545; /* Rosso (delete-color) al passaggio */
+
+        }
+
+
+
+        @media (min-width: 601px) {
+
+            .close-cart-desktop-btn {
+
+                display: block; /* Mostra su desktop */
+
+            }
+
+            #cart-inner-full h2 {
+
+                /* Margine per non sovrapporsi al pulsante X */
+
+                padding-right: 30px; 
+
+            }
+
+        }
+
+        /* --------------------------------------------- */
+
+        
+
+        /* Stili per la lista del carrello */
+
+        #cart-list {
+
+            list-style: none;
+
+            padding: 0;
+
+            margin: 15px 0;
+
+        }
+
+
+
+        .staff-cart-item-compact {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 10px 0;
+
+            border-bottom: 1px dashed #eee;
+
+        }
+
+        
+
+        /* ========================================= */
+
+        /* Stili per la Card Menu (Già presenti) */
+
+        /* ========================================= */
+
+
+
+        .menu-item-card {
+
+            background-color: #fff;
+
+            border: 1px solid #ddd;
+
+            border-radius: 8px;
+
+            padding: 15px;
+
+            margin-bottom: 15px;
+
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+        }
+
+
+
+        .item-info {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            font-size: 1.1em;
+
+            padding-bottom: 5px;
+
+            border-bottom: 1px solid #eee;
+
+        }
+
+
+
+        /* Stili per le Checkbox (Opzioni) */
+
+        .item-options-container {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 10px;
+
+            padding: 5px 0;
+
+            border-top: 1px solid #eee;
+
+            border-bottom: 1px solid #eee;
+
+        }
+
+
+
+        .option-label {
+
+            background-color: #f0f0f0;
+
+            padding: 5px 10px;
+
+            border-radius: 4px;
+
+            cursor: pointer;
+
+            font-size: 0.9em;
+
+            transition: background-color 0.2s;
+
+            display: flex;
+
+            align-items: center;
+
+        }
+
+
+
+        .option-label input[type="checkbox"] {
+
+            margin-right: 5px;
+
+            /* Nasconde l'input e usa lo stile del label per l'interazione */
+
+            -webkit-appearance: none;
+
+            -moz-appearance: none;
+
+            appearance: none;
+
+            width: 15px;
+
+            height: 15px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 3px;
+
+            outline: none;
+
+            cursor: pointer;
+
+            position: relative;
+
+            top: 1px;
+
+        }
+
+
+
+        .option-label input[type="checkbox"]:checked {
+
+            background-color: #007bff; /* Colore primario */
+
+            border-color: #007bff;
+
+        }
+
+        
+
+        /* Aggiunge il segno di spunta se selezionato */
+
+        .option-label input[type="checkbox"]:checked::after {
+
+            content: "\f00c"; /* Icona di spunta FontAwesome */
+
+            font-family: "Font Awesome 6 Free";
+
+            font-weight: 900;
+
+            color: #fff;
+
+            position: absolute;
+
+            top: 50%;
+
+            left: 50%;
+
+            transform: translate(-50%, -50%);
+
+            font-size: 10px;
+
+        }
+
+
+
+        /* Effetto visivo al passaggio del mouse o al check */
+
+        .option-label:has(input[type="checkbox"]:checked) {
+
+            background-color: #cce0ff; 
+
+            font-weight: bold;
+
+        }
+
+
+
+        .add-to-cart-btn {
+
+            background-color: #28a745;
+
+            color: white;
+
+            padding: 10px;
+
+            border: none;
+
+            border-radius: 4px;
+
+            cursor: pointer;
+
+            font-size: 1em;
+
+            transition: background-color 0.2s;
+
+        }
+
+
+
+        .add-to-cart-btn:hover {
+
+            background-color: #218838;
+
+        }
+
+        
+
+        /* Stili per il carrello */
+
+        .item-options-display {
+
+            display: block;
+
+            color: #6c757d;
+
+            font-style: italic;
+
+            margin-top: 2px;
+
+        }
+
+        
+
+        /* Altri stili generici che potresti avere nel tuo style.css (header, layout, bottoni, ecc.) */
+
+        /* ... */
+
+
+
+    </style>
+
 </head>
-<body>
-    <header class="menu-header">
-        <div class="header-content">
-            <div class="header-main-row">
-                <h1>STAFF ORDER APP</h1>
-                <button id="logout-btn" class="simple-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </div>
-            
-            <div class="header-table-controls">
-                <label for="table-select">Tavolo:</label>
-                <select id="table-select"></select>
-                <p style="display: inline-block;">Ordine: <strong><span id="table-id">NESSUNO</span></strong></p>
-            </div>
-        </div>
-        
-        <nav id="quick-links" class="category-nav">
-        </nav>
-    </header>
-    <main>  
-        <section id="menu-container" style="pointer-events: none; opacity: 0.5;"> 
-            <div class="loading-state">
-                <i class="fas fa-hand-pointer"></i>
-                <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
-            </div>
-            </section>
-        <div id="order-anchor-point" style="height: 1px;"></div> 
-    </main>
-    
-    <section id="cart-fixed-bar-staff" class="hidden"> 
-        <button id="toggle-full-cart-btn">
-            <i class="fas fa-shopping-cart"></i>
-            Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
-        </button>
-    </section>
-    
-    <section id="full-cart-details" class="hidden-cart">
-        <div id="cart-inner-full"> 
-                        <button class="close-cart-desktop-btn" id="close-cart-desktop-btn" aria-label="Chiudi riepilogo carrello">&times;</button>
 
-            <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
-            
-            <ul id="cart-list">
-            </ul>
-            
-            <div class="order-notes-section">
-                <label for="order-notes">Note per l'Ordine (Allergie, modifiche...):</label>
-                <textarea id="order-notes" rows="3" placeholder="Es: Senza glutine, patatine croccanti, cameriera ha promesso un caffè omaggio..."></textarea>
-            </div>
-            <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
-            
-            <button id="send-order-btn" class="main-action-btn">Invia Ordine</button>
-            <button id="close-cart-btn" class="simple-btn"><i class="fas fa-times"></i> Chiudi e Continua Ordine</button>
-        </div>
-    </section>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="staff-script.js"></script>
+<body>
+
+    <header class="menu-header">
+
+        <div class="header-content">
+
+            <div class="header-main-row">
+
+                <h1>STAFF ORDER APP</h1>
+
+                <button id="logout-btn" class="simple-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+
+            </div>
+
+            
+
+            <div class="header-table-controls">
+
+                <label for="table-select">Seleziona Tavolo:</label>
+
+                <select id="table-select"></select>
+
+                <p style="display: inline-block; margin-left: 15px;">Ordine per Tavolo: <strong><span id="table-id">NESSUNO</span></strong></p>
+
+            </div>
+
+        </div>
+
+        
+
+        <nav id="quick-links" class="category-nav">
+
+        </nav>
+
+    </header>
+
+    <main>  
+
+        <section id="menu-container" style="pointer-events: none; opacity: 0.5;"> 
+
+            <div class="loading-state">
+
+                <i class="fas fa-hand-pointer"></i>
+
+                <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
+
+            </div>
+
+            </section>
+
+        <div id="order-anchor-point" style="height: 1px;"></div> 
+
+    </main>
+
+    
+
+    <section id="cart-fixed-bar-staff" class="hidden"> 
+
+        <button id="toggle-full-cart-btn">
+
+            <i class="fas fa-shopping-cart"></i>
+
+            Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
+
+        </button>
+
+    </section>
+
+    
+
+    <section id="full-cart-details" class="hidden-cart">
+
+        <div id="cart-inner-full"> 
+
+                        <button class="close-cart-desktop-btn" id="close-cart-desktop-btn" aria-label="Chiudi riepilogo carrello">&times;</button>
+
+
+
+            <h2>Riepilogo Ordine Completo (Tavolo <span id="cart-table-display-full">...</span>)</h2>
+
+            
+
+            <ul id="cart-list">
+
+            </ul>
+
+            
+
+            <div class="order-notes-section">
+
+                <label for="order-notes">Note per l'Ordine (Allergie, modifiche...):</label>
+
+                <textarea id="order-notes" rows="3" placeholder="Es: Senza glutine, patatine croccanti, cameriera ha promesso un caffè omaggio..."></textarea>
+
+            </div>
+
+            <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
+
+            
+
+            <button id="send-order-btn" class="main-action-btn">Invia Ordine</button>
+
+            <button id="close-cart-btn" class="simple-btn"><i class="fas fa-times"></i> Chiudi e Continua Ordine</button>
+
+        </div>
+
+    </section>
+
+    
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script src="staff-script.js"></script>
+
 </body>
+
 </html>
