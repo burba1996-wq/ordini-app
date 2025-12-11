@@ -40,6 +40,8 @@ const cartFixedTotal = document.getElementById('cart-fixed-total');
 let cart = []; // Array per contenere gli articoli nel carrello
 let tableId = 'Tavolo non trovato'; // Modificato il default per chiarezza
 let menuStructure = {}; // Salverà la struttura del menu raggruppato
+let activeOrderId = null; // ID dell'ordine attivo per questo tavolo
+let unsubscribeOrderListener = null; // Funzione per rimuovere il listener
 
 // ====================================================================
 // 3. LOGICA DI CARRELLO E STATO
@@ -52,7 +54,7 @@ function getTableIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('tableId');
     if (id) {
-        tableId = id.toUpperCase();
+        tableId = id;
     }
     tableIdSpan.textContent = tableId;
 }
@@ -131,7 +133,6 @@ function attachCartEventListeners() {
         } else if (button.classList.contains('cart-decrement')) {
             updateQuantity(itemId, -1);
         } else if (button.classList.contains('cart-remove')) {
-            // Nota: Se usi solo +/- (come nel CSS), questo blocco non è necessario
             removeItem(itemId); 
         }
     };
@@ -185,9 +186,183 @@ function renderCart() {
     cartFixedTotal.textContent = formattedTotal;
 }
 
+// ====================================================================
+// 4. GESTIONE ORDINE ATTIVO E STATO IN TEMPO REALE
+// ====================================================================
+
+/**
+ * Controlla se esiste già un ordine attivo per questo tavolo.
+ * Se esiste, blocca il form e mostra lo stato dell'ordine.
+ */
+async function checkActiveOrder() {
+    try {
+        const snapshot = await db.collection('orders')
+            .where('tableId', '==', tableId)
+            .where('status', 'in', ['pending', 'executed'])
+            .orderBy('timestamp', 'desc')
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const orderDoc = snapshot.docs[0];
+            activeOrderId = orderDoc.id;
+            const orderData = orderDoc.data();
+            
+            // Mostra l'ordine attivo e blocca il menu
+            displayActiveOrder(orderData);
+            disableOrdering();
+            
+            // Avvia il listener in tempo reale per questo ordine
+            listenToOrderUpdates(activeOrderId);
+        } else {
+            // Nessun ordine attivo, permetti nuovi ordini
+            activeOrderId = null;
+            enableOrdering();
+        }
+    } catch (error) {
+        console.error("Errore nel controllo ordini attivi:", error);
+    }
+}
+
+/**
+ * Ascolta gli aggiornamenti in tempo reale dell'ordine attivo.
+ */
+function listenToOrderUpdates(orderId) {
+    // Rimuovi il listener precedente se esiste
+    if (unsubscribeOrderListener) {
+        unsubscribeOrderListener();
+    }
+    
+    // Crea un nuovo listener
+    unsubscribeOrderListener = db.collection('orders').doc(orderId)
+        .onSnapshot((doc) => {
+            if (!doc.exists) {
+                // L'ordine è stato eliminato
+                activeOrderId = null;
+                enableOrdering();
+                hideActiveOrderDisplay();
+                return;
+            }
+            
+            const orderData = doc.data();
+            
+            // Se lo stato è 'completed', rimuovi l'ordine attivo
+            if (orderData.status === 'completed') {
+                activeOrderId = null;
+                enableOrdering();
+                hideActiveOrderDisplay();
+                if (unsubscribeOrderListener) {
+                    unsubscribeOrderListener();
+                }
+            } else {
+                // Aggiorna la visualizzazione dello stato
+                displayActiveOrder(orderData);
+            }
+        }, (error) => {
+            console.error("Errore nel listener ordine:", error);
+        });
+}
+
+/**
+ * Mostra l'ordine attivo con il suo stato in un banner.
+ */
+function displayActiveOrder(orderData) {
+    // Rimuovi eventuali banner precedenti
+    const existingBanner = document.getElementById('active-order-banner');
+    if (existingBanner) {
+        existingBanner.remove();
+    }
+    
+    // Crea il banner
+    const banner = document.createElement('div');
+    banner.id = 'active-order-banner';
+    banner.className = 'active-order-banner';
+    
+    const statusText = orderData.status === 'pending' ? 'In Attesa' : 'In Preparazione';
+    const statusClass = orderData.status === 'pending' ? 'status-pending' : 'status-executed';
+    const statusIcon = orderData.status === 'pending' ? '⏳' : '👨‍🍳';
+    
+    banner.innerHTML = `
+        <div class="order-status-header">
+            <h3>${statusIcon} Ordine Attivo - ${statusText}</h3>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+        </div>
+        <div class="order-items-list">
+            ${orderData.items.map(item => `
+                <div class="order-item-row">
+                    <span>${item.quantity}x ${item.name}</span>
+                    <span>€${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+            `).join('')}
+        </div>
+        ${orderData.notes ? `<div class="order-notes"><strong>Note:</strong> ${orderData.notes}</div>` : ''}
+        <div class="order-total">
+            <strong>Totale: €${orderData.total.toFixed(2)}</strong>
+        </div>
+        <p class="order-info">Il tuo ordine verrà servito a breve. Non è possibile effettuare nuovi ordini fino al completamento.</p>
+    `;
+    
+    // Inserisci il banner all'inizio del main container
+    const header = document.querySelector('.menu-header');
+    header.insertAdjacentElement('afterend', banner);
+}
+
+/**
+ * Nasconde il banner dell'ordine attivo.
+ */
+function hideActiveOrderDisplay() {
+    const banner = document.getElementById('active-order-banner');
+    if (banner) {
+        banner.remove();
+    }
+}
+
+/**
+ * Disabilita la possibilità di ordinare (quando c'è già un ordine attivo).
+ */
+function disableOrdering() {
+    // Blocca il menu
+    menuContainer.style.opacity = '0.5';
+    menuContainer.style.pointerEvents = 'none';
+    
+    // Disabilita i pulsanti
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.disabled = true;
+    });
+    
+    // Nascondi la barra fissa del carrello
+    const cartBar = document.getElementById('cart-fixed-bar');
+    if (cartBar) {
+        cartBar.style.display = 'none';
+    }
+}
+
+/**
+ * Riabilita la possibilità di ordinare.
+ */
+function enableOrdering() {
+    // Sblocca il menu
+    menuContainer.style.opacity = '1';
+    menuContainer.style.pointerEvents = 'auto';
+    
+    // Riabilita i pulsanti
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.disabled = false;
+    });
+    
+    // Mostra la barra fissa del carrello
+    const cartBar = document.getElementById('cart-fixed-bar');
+    if (cartBar) {
+        cartBar.style.display = 'block';
+    }
+    
+    // Pulisci il carrello locale
+    cart = [];
+    renderCart();
+}
 
 // ====================================================================
-// 4. LOGICA DEL MENU E FIREBASE (Migliorata con Navigazione)
+// 5. LOGICA DEL MENU E FIREBASE
 // ====================================================================
 
 /**
@@ -205,28 +380,24 @@ function groupItemsByCategory(items) {
 }
 
 /**
- * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
- * @param {object} groupedItems - Il menu raggruppato.
- */
+ * Genera i pulsanti di navigazione rapida (Quick Links) in base alle categorie.
+ * @param {object} groupedItems - Il menu raggruppato.
+ */
 function renderCategoryNavigation(groupedItems) {
     navQuickLinks.innerHTML = '';
     const sortedCategories = Object.keys(groupedItems).sort();
 
     sortedCategories.forEach(category => {
-        // Funzione per creare un ID valido per l'ancoraggio
         const cleanId = `category-${category.replace(/[^a-zA-Z0-9]+/g, '_').toLowerCase()}`;
         
         const button = document.createElement('button');
         button.className = 'category-btn';
         button.textContent = category;
         
-        // COLLEGA L'EVENTO DI SCROLL
         button.addEventListener('click', () => {
             const target = document.getElementById(cleanId);
             if (target) { 
-                // Scroll fluido alla sezione con un offset
                 window.scrollTo({
-                    // target.offsetTop - 100 tiene conto dell'altezza dell'header fisso
                     top: target.offsetTop - 100, 
                     behavior: 'smooth'
                 });
@@ -259,7 +430,6 @@ function renderMenu(groupedItems) {
             const div = document.createElement('div');
             div.className = 'menu-item-card';
 
-            // Usiamo il layout Card moderna con le icone
             div.innerHTML = `
                 <div class="item-info">
                     <h3>${item.name}</h3>
@@ -272,13 +442,12 @@ function renderMenu(groupedItems) {
                 </div>
             `;
 
-            // Aggiunge l'evento al pulsante "Aggiungi" 
             const btn = div.querySelector('.add-to-cart-btn');
             btn.addEventListener('click', () => {
                 addToCart({
                     id: item.id,
                     name: item.name,
-                    price: parseFloat(item.price) // Conversione sicura
+                    price: parseFloat(item.price)
                 });
             });
 
@@ -296,7 +465,6 @@ function renderMenu(groupedItems) {
 async function fetchMenu() {
     menuContainer.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><h2>Caricamento Menu...</h2></div>';
     try {
-        // IMPORTANTE: Necessita di un indice in Firestore se usi .orderBy('category')
         const snapshot = await db.collection('menu').orderBy('category').get(); 
         
         if (snapshot.empty) {
@@ -312,13 +480,15 @@ async function fetchMenu() {
 
         menuStructure = groupItemsByCategory(menuItems); 
         
-        renderCategoryNavigation(menuStructure); // 1. Renderizza la Navigazione Veloce
-        renderMenu(menuStructure); // 2. Renderizza il Menu
+        renderCategoryNavigation(menuStructure);
+        renderMenu(menuStructure);
+        
+        // Controlla se c'è un ordine attivo dopo aver caricato il menu
+        await checkActiveOrder();
 
     } catch (error) {
         console.error("Errore nel caricamento del menu: ", error);
-        // Visualizza l'errore se la connessione fallisce
-        menuContainer.innerHTML = '<p class="error-message">Impossibile caricare il menu. Controlla la connessione o le regole di Firebase. (Vedi console F12 per dettagli)</p>';
+        menuContainer.innerHTML = '<p class="error-message">Impossibile caricare il menu. Controlla la connessione o le regole di Firebase.</p>';
     }
 }
 
@@ -331,11 +501,15 @@ async function sendOrder() {
         alert("Il carrello è vuoto!");
         return;
     }
+    
+    if (activeOrderId) {
+        alert("Hai già un ordine attivo! Attendi che venga completato prima di ordinare di nuovo.");
+        return;
+    }
 
     sendOrderBtn.disabled = true;
     sendOrderBtn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Invio in corso...';
     
-    // Crea una versione pulita degli articoli del carrello per il database
     const itemsToSave = cart.map(item => ({
         id: item.id,
         name: item.name,
@@ -348,23 +522,27 @@ async function sendOrder() {
         items: itemsToSave,
         total: parseFloat(totalPriceSpan.textContent),
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'pending' 
+        status: 'pending',
+        notes: ''
     };
     
     try {
-        await db.collection('orders').add(orderData);
+        const docRef = await db.collection('orders').add(orderData);
+        activeOrderId = docRef.id;
         
-        // Chiude la modale dopo l'invio
         toggleCartModal(false); 
-        alert(`Ordine inviato con successo al Tavolo ${tableId}! Sarai servito a breve.`);
+        alert(`Ordine inviato con successo! Puoi seguire lo stato dell'ordine nella parte superiore della pagina.`);
         
-        // Pulisce lo stato
         cart = [];
-        renderCart(); 
+        renderCart();
+        
+        // Controlla immediatamente l'ordine appena creato
+        await checkActiveOrder();
 
     } catch (error) {
         console.error("Errore nell'invio dell'ordine: ", error);
         alert("Si è verificato un errore durante l'invio dell'ordine.");
+        activeOrderId = null;
     } finally {
         sendOrderBtn.disabled = false;
         sendOrderBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Invia Ordine al Bar';
@@ -372,49 +550,39 @@ async function sendOrder() {
 }
 
 // ====================================================================
-// 5. INIZIALIZZAZIONE
+// 6. INIZIALIZZAZIONE
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Legge il tavolo dall'URL
     getTableIdFromUrl();
-    
-    // 2. Carica e visualizza il menu
     fetchMenu();
-    
-    // 3. Inizializza la visualizzazione del carrello vuoto
     renderCart(); 
 
-    // 4. Collega i listener di base
     sendOrderBtn.addEventListener('click', sendOrder);
-    
-    // 5. Collega il listener di delegation per il carrello interattivo
     attachCartEventListeners(); 
 
-    // 6. Listener per la Modale Carrello 
-    // AGGIORNATO: Ora il pulsante chiude il modale, ma l'apertura cambia funzione.
-    // toggleCartBtn NON apre più la modale
     closeCartBtn.addEventListener('click', () => toggleCartModal(false));
     
-    // Chiudi il modale cliccando fuori
     window.addEventListener('click', (event) => {
         if (event.target === cartModal) {
             toggleCartModal(false);
         }
     });
 
-    // NUOVA FUNZIONE: SCORRI AL PUNTO DI ANCORAGGIO ORDINE
     toggleCartBtn.addEventListener('click', () => {
         const anchor = document.getElementById('order-anchor-point');
         if (anchor) {
             window.scrollTo({
-                top: anchor.offsetTop - 50, // -50 per lasciare spazio visivo
+                top: anchor.offsetTop - 50,
                 behavior: 'smooth'
             });
-            // Opzionale: Apri comunque il modale se l'utente è alla fine della pagina
-            // if (anchor.getBoundingClientRect().top < 200) {
-            //     toggleCartModal(true);
-            // }
         }
     });
+});
+
+// Pulizia quando l'utente lascia la pagina
+window.addEventListener('beforeunload', () => {
+    if (unsubscribeOrderListener) {
+        unsubscribeOrderListener();
+    }
 });
