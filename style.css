@@ -580,7 +580,53 @@ a {
         display: none; /* Chiudi/apri non necessari su desktop */
     }
 }
+/* -------------------------------------------------------------------------- */
+/* Ottimizzazione Desktop: Pulsante Chiudi/Nascondi Banner Ordine */
+/* -------------------------------------------------------------------------- */
 
+.close-banner-btn {
+    position: absolute; /* Posizionalo rispetto al banner */
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.5em; /* Abbastanza grande per il click */
+    font-weight: 300;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: none; /* Nascondi di default */
+    z-index: 10;
+}
+
+.close-banner-btn:hover {
+    color: var(--delete-color); /* Rosso per indicare l'azione */
+}
+
+/* Attiva il display solo su schermi più grandi (desktop) */
+@media (min-width: 601px) {
+    .active-order-banner {
+        position: relative; /* Necessario per posizionare il pulsante in modo assoluto */
+        padding-right: 40px; /* Aggiunge spazio extra a destra per il pulsante */
+    }
+
+    .close-banner-btn {
+        display: block; /* Mostra su desktop */
+    }
+}
+📋 Come Usare l'HTML e JavaScript
+1. Modifica HTML (Esempio)
+Dovrai assicurarti che il contenitore .active-order-banner abbia il pulsante al suo interno.
+
+HTML
+
+<div class="active-order-banner" id="active-order-banner-id">
+    <button class="close-banner-btn" aria-label="Chiudi riepilogo ordine">&times;</button>
+    
+    <div class="order-status-header">
+        </div>
+    </div>
 
 /* ========================================================== */
 /* 6. BANNER ORDINE ATTIVO (Lato Cliente) */
