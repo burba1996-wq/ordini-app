@@ -294,11 +294,11 @@ a {
 /* --- Griglia dei Tavoli (#tables-grid) --- */
 #tables-grid {
     /* *** MODIFICA CHIAVE ***
-    * RIDUCIAMO il minmax (da 85px a 70px) per consentire più colonne.
-    * RIDUCIAMO il gap (da 18px a 15px).
+    * RIDUCIAMO ulteriormente il minmax per colonne più strette.
     */
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); 
-    gap: 15px; 
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); 
+    /* RIDUCIAMO il gap. */
+    gap: 12px; 
     padding: 20px;
     background-color: var(--card-bg);
     border-radius: 12px;
@@ -313,9 +313,9 @@ a {
     border: 3px solid #ccc; 
     border-radius: 50%; 
     /* *** MODIFICA CHIAVE ***
-    * RIDUCIAMO il font-size (da 1.6em a 1.4em) per adattarsi al bottone più piccolo.
+    * RIDUCIAMO il font-size per adattarsi al bottone più piccolo.
     */
-    font-size: 1.4em; 
+    font-size: 1.2em; 
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
