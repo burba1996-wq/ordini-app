@@ -363,8 +363,8 @@ a {
 
 #cart-list {
     list-style: none;
-    padding: 0 !important;
-    margin: 0px 0 !important;
+    padding: 3px ;
+    margin: 1px 0 ;
 }
 
 .staff-cart-item-compact {
