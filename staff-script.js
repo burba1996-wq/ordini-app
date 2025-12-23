@@ -270,85 +270,79 @@ async function loadMenu() {
  * Renderizza il menu e genera i link di navigazione con la logica per le opzioni.
  */
 function renderMenu() {
-    if (!DOM.mainContainer || menuData.length === 0 || !DOM.quickLinksNav) return;
+    if (!DOM.mainContainer || menuData.length === 0 || !DOM.quickLinksNav) return;
 
-    const groupedMenu = menuData.reduce((acc, item) => {
-        const category = item.category || 'Generico';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(item);
-        return acc;
-    }, {});
+    const groupedMenu = menuData.reduce((acc, item) => {
+        const category = item.category || 'Generico';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(item);
+        return acc;
+    }, {});
 
-    DOM.mainContainer.innerHTML = '';
-    DOM.quickLinksNav.innerHTML = '';
-    const categories = Object.keys(groupedMenu).sort();
-    
-    categories.forEach(category => {
-        const section = document.createElement('section');
-        section.id = 'cat-' + category.replace(/\s/g, '_');  
-        
-        section.innerHTML = `<h2 class="menu-category-title">${category}</h2>`;
+    DOM.mainContainer.innerHTML = '';
+    DOM.quickLinksNav.innerHTML = '';
+    const categories = Object.keys(groupedMenu).sort();
+    
+    categories.forEach(category => {
+        const section = document.createElement('section');
+        section.id = 'cat-' + category.replace(/\s/g, '_');  
+        
+        // Titolo categoria
+        section.innerHTML = `<h2 class="menu-category-title">${category}</h2>`;
 
-        const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'category-items';
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'category-items';
 
-        groupedMenu[category].forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'menu-item-card';
-            
-            // Contenitore principale dell'articolo
-            let itemHtml = `
-                <div class="item-info">
-                    <strong>${item.name}</strong>
-                    <span class="item-base-price">€ ${item.price.toFixed(2)}</span>
-                </div>
-            `;
-            
-            // --- GENERAZIONE OPZIONI/CHECKBOXES ---
-            if (item.options && Array.isArray(item.options) && item.options.length > 0) {
-                itemHtml += `
-                    <div class="item-options-container" data-item-id="${item.id}">
-                `;
-                item.options.forEach((option, index) => {
-                    const optionId = `${item.id}-${option.name.replace(/\s/g, '')}`;
-                    const optionPrice = parseFloat(option.price);
-                    const safePrice = isNaN(optionPrice) ? 0 : optionPrice; 
-                    
-                    const priceLabel = safePrice > 0 ? ` (+€${safePrice.toFixed(2)})` : '';
-                    
-                    itemHtml += `
-                        <label for="${optionId}" class="option-label">
-                            <input type="checkbox" 
-                                id="${optionId}" 
-                                name="options-${item.id}" 
-                                data-option-name="${option.name}"
-                                data-extra-price="${safePrice}"
-                                ${index === 0 ? 'checked' : ''}  
-                            >
-                            ${option.name}${priceLabel}
-                        </label>
-                    `;
-                });
-                itemHtml += `</div>`;
-            } else {
-                 itemHtml += `<div class="item-options-container"></div>`;
-            }
+        groupedMenu[category].forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'menu-item-card';
+            
+            // --- STRUTTURA LATO STAFF IDENTICA A LATO CLIENTE ---
+            let itemHtml = `
+                <div class="item-info">
+                    <h3>${item.name}</h3>
+                    <p>€ ${item.price.toFixed(2)}</p>
+                </div>
+            `;
+            
+            // --- GENERAZIONE OPZIONI (PILLOLE) ---
+            if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+                itemHtml += `<div class="item-options-container" data-item-id="${item.id}">`;
+                item.options.forEach((option) => {
+                    const optionId = `${item.id}-${option.name.replace(/\s/g, '')}`;
+                    const optionPrice = parseFloat(option.price) || 0;
+                    const priceLabel = optionPrice > 0 ? ` (+€${optionPrice.toFixed(2)})` : '';
+                    
+                    itemHtml += `
+                        <label for="${optionId}" class="option-label">
+                            <input type="checkbox" 
+                                id="${optionId}" 
+                                data-option-name="${option.name}"
+                                data-extra-price="${optionPrice}">
+                            ${option.name}${priceLabel}
+                        </label>
+                    `;
+                });
+                itemHtml += `</div>`;
+            } else {
+                itemHtml += `<div class="item-options-container"></div>`;
+            }
 
-            // Pulsante di aggiunta
-            itemHtml += `
-                <button data-id="${item.id}" 
-                        data-name="${item.name}" 
-                        data-price="${item.price}" 
-                        class="add-to-cart-btn">Aggiungi</button>
-            `;
-            
-            itemElement.innerHTML = itemHtml;
-            itemsContainer.appendChild(itemElement);
-        });
+            // Pulsante Aggiungi (si posizionerà a destra grazie al nuovo CSS)
+            itemHtml += `
+                <button data-id="${item.id}" 
+                        data-name="${item.name}" 
+                        data-price="${item.price}" 
+                        class="add-to-cart-btn">Aggiungi</button>
+            `;
+            
+            itemElement.innerHTML = itemHtml;
+            itemsContainer.appendChild(itemElement);
+        });
 
-        section.appendChild(itemsContainer);
-        DOM.mainContainer.appendChild(section);
-    });
+        section.appendChild(itemsContainer);
+        DOM.mainContainer.appendChild(section);
+    });
 
     // 3. Aggiunge gli ascoltatori di eventi per l'aggiunta al carrello
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
