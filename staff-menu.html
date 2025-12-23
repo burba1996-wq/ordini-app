@@ -6,24 +6,89 @@
     <title>Staff | Presa Ordini</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
     
     <link rel="stylesheet" href="style.css"> 
 
     <style>
         /* ========================================= */
-        /* Stili per il Carrello Centrato e Barra */
+        /* RESET & UTILITY */
         /* ========================================= */
-
-        /* Impedisce lo scrolling del menu quando il riepilogo è aperto */
         body.no-scroll {
             overflow: hidden;
         }
 
-        /* BARRA CARRELLO FISSA IN BASSO (PIÙ GRANDE) */
+        /* ========================================= */
+        /* CARD MENU E OPZIONI (CORREZIONE CENTRATURA) */
+        /* ========================================= */
+        .menu-item-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.15em;
+            font-weight: bold;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Contenitore Opzioni: Centrato e visibile solo se popolato */
+        .item-options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center; /* CENTRA LE AGGIUNTE (Caffè, Cornetti, etc) */
+            padding: 5px 0;
+        }
+
+        /* Nasconde il box se non ci sono opzioni per l'articolo */
+        .item-options-container:empty {
+            display: none;
+        }
+
+        .option-label {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 8px 14px;
+            border-radius: 20px; /* Forma a pillola più moderna */
+            cursor: pointer;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .option-label input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .option-label:hover {
+            background-color: #e2e6ea;
+        }
+
+        /* Colore quando selezionato */
+        .option-label:has(input:checked) {
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        /* ========================================= */
+        /* BARRA CARRELLO FISSA IN BASSO */
+        /* ========================================= */
         #cart-fixed-bar-staff {
             position: fixed;
             bottom: 0;
@@ -45,7 +110,7 @@
             background: none;
             border: none;
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             width: 100%;
@@ -55,7 +120,9 @@
             gap: 10px;
         }
 
-        /* OVERLAY DEL RIEPILOGO (COPRE TUTTO LO SCHERMO) */
+        /* ========================================= */
+        /* OVERLAY MODAL RIEPILOGO CENTRATO */
+        /* ========================================= */
         #full-cart-details {
             position: fixed;
             top: 0;
@@ -63,112 +130,72 @@
             width: 100%;
             height: 100%;
             z-index: 2000;
-            background-color: rgba(0, 0, 0, 0.7); /* Sfondo scurito */
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
-            align-items: center; /* Centratura perfetta */
+            align-items: center;
+            backdrop-filter: blur(5px);
             transition: opacity 0.3s ease;
-            backdrop-filter: blur(5px); /* Effetto sfocato su PC/Mobile moderni */
         }
 
-        /* Stato nascosto del riepilogo */
         #full-cart-details.hidden-cart {
             display: none;
             opacity: 0;
-            pointer-events: none;
         }
 
-        /* IL BOX BIANCO (LA MODAL) */
         #cart-inner-full {
             background-color: white;
-            width: 90%;
-            max-width: 550px; /* Larghezza massima su PC */
-            max-height: 85vh; /* Altezza massima per evitare che esca dallo schermo */
-            border-radius: 12px;
+            width: 92%;
+            max-width: 500px;
+            max-height: 85vh;
+            border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-            overflow-y: auto; /* Scroll interno per liste ordini lunghe */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
             position: relative;
         }
 
-        /* PULSANTE CHIUSURA (X) */
         .close-cart-desktop-btn {
             position: absolute; 
             top: 15px;
             right: 15px;
             background: #f1f1f1;
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            font-size: 1.5rem;
-            color: #666;
+            font-size: 1.2rem;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.2s;
         }
 
-        .close-cart-desktop-btn:hover {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        /* STILI CONTENUTO INTERNO */
         #cart-inner-full h2 {
             margin-top: 0;
-            padding-right: 35px;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #333;
             border-bottom: 2px solid #007bff;
             padding-bottom: 10px;
             margin-bottom: 20px;
-        }
-
-        #cart-list {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
-        }
-
-        .staff-cart-item-compact {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .order-notes-section {
-            margin: 20px 0;
-        }
-
-        .order-notes-section textarea {
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            resize: none;
+            text-align: center;
         }
 
         .total-summary-full {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
-            text-align: right;
+            text-align: center;
             color: #28a745;
             margin: 20px 0;
         }
 
-        /* PULSANTI AZIONE */
         .main-action-btn {
             background-color: #28a745;
             color: white;
             border: none;
             width: 100%;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 10px;
             font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
@@ -180,63 +207,14 @@
             color: white;
             border: none;
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             cursor: pointer;
         }
 
-        /* ADATTAMENTI MENU CARD */
-        .menu-item-card {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .item-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.1em;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .item-options-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 5px 0;
-        }
-
-        .option-label {
-            background-color: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-        }
-
-        .option-label input[type="checkbox"] {
-            margin-right: 8px;
-        }
-
-        /* Mobile specific adjustments */
         @media (max-width: 600px) {
             #cart-inner-full {
-                width: 95%;
-                padding: 15px;
-                max-height: 90vh;
-            }
-            #cart-inner-full h2 {
-                font-size: 1.1rem;
+                padding: 20px 15px;
             }
         }
     </style>
@@ -256,8 +234,7 @@
             </div>
         </div>
         
-        <nav id="quick-links" class="category-nav">
-        </nav>
+        <nav id="quick-links" class="category-nav"></nav>
     </header>
 
     <main>  
@@ -273,28 +250,28 @@
     <section id="cart-fixed-bar-staff" class="hidden"> 
         <button id="toggle-full-cart-btn">
             <i class="fas fa-shopping-cart"></i>
-            Vedi Riepilogo (<span id="cart-item-count">0</span> Articoli) - Totale: € <span id="total-price-fixed">0.00</span>
+            VEDI ORDINE (<span id="cart-item-count">0</span>) - Totale: € <span id="total-price-fixed">0.00</span>
         </button>
     </section>
     
     <section id="full-cart-details" class="hidden-cart">
         <div id="cart-inner-full"> 
-            <button class="close-cart-desktop-btn" id="close-cart-desktop-btn" aria-label="Chiudi riepilogo">&times;</button>
+            <button class="close-cart-desktop-btn" id="close-cart-desktop-btn" aria-label="Chiudi">&times;</button>
 
-            <h2>Riepilogo Ordine (Tavolo <span id="cart-table-display-full">...</span>)</h2>
+            <h2>Riepilogo Tavolo <span id="cart-table-display-full">...</span></h2>
             
             <ul id="cart-list">
                 </ul>
             
-            <div class="order-notes-section">
-                <label for="order-notes"><strong>Note per l'Ordine:</strong></label>
-                <textarea id="order-notes" rows="3" placeholder="Es: Senza glutine, modifiche varie..."></textarea>
+            <div class="order-notes-section" style="margin-top:15px;">
+                <label for="order-notes" style="display:block; margin-bottom:5px;"><strong>Note Ordine:</strong></label>
+                <textarea id="order-notes" rows="3" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px;" placeholder="Allergie o modifiche..."></textarea>
             </div>
 
             <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
             
-            <button id="send-order-btn" class="main-action-btn">INVIA ORDINE</button>
-            <button id="close-cart-btn" class="simple-btn-full"><i class="fas fa-times"></i> Chiudi e Continua</button>
+            <button id="send-order-btn" class="main-action-btn">INVIA IN CUCINA</button>
+            <button id="close-cart-btn" class="simple-btn-full"><i class="fas fa-times"></i> Torna al Menu</button>
         </div>
     </section>
     
