@@ -188,8 +188,10 @@ function displayOrderDetails(order) {
     const itemsHtml = order.items.map(item => {
         // Estraiamo le opzioni: se è un array di stringhe lo uniamo, altrimenti stringa vuota
         const optionsText = (item.options && Array.isArray(item.options) && item.options.length > 0) 
-            ? item.options.join(', ') 
-            : '';
+    ? item.options.map(opt => {
+        return typeof opt === 'object' ? (opt.name || opt.label || JSON.stringify(opt)) : opt;
+    }).join(', ') 
+    : '';
 
         const optionsHtml = optionsText 
             ? `<div class="admin-item-options"><i class="fas fa-plus-circle"></i> ${optionsText}</div>` 
@@ -432,10 +434,11 @@ function renderHistoryCard(order) {
 
     // Mappatura articoli con estrazione corretta delle opzioni (checkbox)
     const itemsHtml = order.items.map(item => {
-        // Estraiamo le opzioni e le uniamo con una virgola
         const optionsText = (item.options && Array.isArray(item.options) && item.options.length > 0) 
-            ? item.options.join(', ') 
-            : '';
+    ? item.options.map(opt => {
+        return typeof opt === 'object' ? (opt.name || opt.label || "Opzione") : opt;
+    }).join(', ') 
+    : '';
 
         // Se ci sono opzioni, creiamo il div dedicato, altrimenti stringa vuota
         const optionsHtml = optionsText 
