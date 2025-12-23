@@ -184,11 +184,15 @@ function setupViewFilters() {
 function displayOrderDetails(order) {
     const time = formatTimestampToTime(order.timestamp);
 
-    // Mappatura articoli con gestione opzioni (checkbox)
+    // Mappatura articoli con correzione per estrarre le opzioni
     const itemsHtml = order.items.map(item => {
-        // Se esistono opzioni, le uniamo in una stringa, altrimenti stringa vuota
-        const optionsHtml = (item.options && item.options.length > 0) 
-            ? `<div class="admin-item-options"><i class="fas fa-plus-circle"></i> ${item.options.join(', ')}</div>` 
+        // Estraiamo le opzioni: se è un array di stringhe lo uniamo, altrimenti stringa vuota
+        const optionsText = (item.options && Array.isArray(item.options) && item.options.length > 0) 
+            ? item.options.join(', ') 
+            : '';
+
+        const optionsHtml = optionsText 
+            ? `<div class="admin-item-options"><i class="fas fa-plus-circle"></i> ${optionsText}</div>` 
             : '';
 
         return `
@@ -197,10 +201,12 @@ function displayOrderDetails(order) {
                     <span><strong>${item.quantity}x</strong> ${item.name}</span>
                     <span class="item-price">€${(item.quantity * item.price).toFixed(2)}</span>
                 </div>
-                ${optionsHtml} </li>
+                ${optionsHtml}
+            </li>
         `;
     }).join('');
 
+    // ... resto della funzione (note e bottoni) ...
     const noteHtml = order.notes
         ? `<div class="order-note-display"><strong><i class="fas fa-sticky-note"></i> NOTA:</strong> ${order.notes}</div>`
         : '';
