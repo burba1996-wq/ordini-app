@@ -2,25 +2,22 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Staff | Presa Ordini</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 85 C20 60, 10 45, 10 30 C10 15, 20 5, 32 5 C40 5, 45 10, 50 18 C55 10, 60 5, 68 5 C80 5, 90 15, 90 30 C90 45, 80 60, 50 85 Z' fill='%23ed1c24'/%3E%3C/svg%3E">
-    
     <link rel="stylesheet" href="style.css"> 
 
     <style>
         /* ========================================= */
-        /* RESET & UTILITY */
+        /* RESET & MOBILE OPTIMIZATION */
         /* ========================================= */
-        body.no-scroll {
-            overflow: hidden;
-        }
+        body.no-scroll { overflow: hidden; }
 
         /* ========================================= */
-        /* CARD MENU E OPZIONI (CORREZIONE CENTRATURA) */
+        /* CARD MENU E OPZIONI (SINISTRA FISSA) */
         /* ========================================= */
         .menu-item-card {
             background-color: #fff;
@@ -28,53 +25,53 @@
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
+            /* Forza l'allineamento a sinistra del testo */
+            text-align: left; 
         }
 
         .item-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.15em;
+            font-size: 1.1em;
             font-weight: bold;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f0f0f0;
         }
 
         .item-options-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            justify-content: flex-start;
+            gap: 6px;
+            /* Allineamento a sinistra garantito su Mobile e Desktop */
+            justify-content: flex-start; 
+            align-items: flex-start;
             padding: 5px 0;
+            width: 100%;
         }
 
-        .item-options-container:empty {
-            display: none;
-        }
+        /* Nasconde il box se vuoto */
+        .item-options-container:empty { display: none; }
 
         .option-label {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
-            padding: 8px 14px;
-            border-radius: 20px; 
+            padding: 5px 10px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 0.85em;
-            display: flex;
+            font-size: 0.8em;
+            display: inline-flex;
             align-items: center;
-            transition: all 0.2s ease;
+            /* Allineamento interno pillola */
+            justify-content: flex-start; 
+            margin: 0;
         }
 
         .option-label input[type="checkbox"] {
-            margin-right: 8px;
-            cursor: pointer;
-        }
-
-        .option-label:hover {
-            background-color: #e2e6ea;
+            margin: 0 6px 0 0; /* Solo margine a destra della spunta */
+            padding: 0;
+            transform: scale(1.1); /* Leggermente più grande per facilità tocco mobile */
         }
 
         .option-label:has(input:checked) {
@@ -84,7 +81,7 @@
         }
 
         /* ========================================= */
-        /* BARRA CARRELLO FISSA IN BASSO */
+        /* BARRA FISSA IN BASSO */
         /* ========================================= */
         #cart-fixed-bar-staff {
             position: fixed;
@@ -99,9 +96,7 @@
             text-align: center;
         }
 
-        #cart-fixed-bar-staff.hidden {
-            display: none;
-        }
+        #cart-fixed-bar-staff.hidden { display: none; }
 
         #toggle-full-cart-btn {
             background: none;
@@ -118,7 +113,7 @@
         }
 
         /* ========================================= */
-        /* OVERLAY MODAL RIEPILOGO CENTRATO */
+        /* MODAL RIEPILOGO CENTRATO (MOBILE READY) */
         /* ========================================= */
         #full-cart-details {
             position: fixed;
@@ -129,91 +124,37 @@
             z-index: 2000;
             background-color: rgba(0, 0, 0, 0.7);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Centro orizzontale */
+            align-items: center;     /* Centro verticale */
             backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
+            padding: 10px; /* Spazio di sicurezza per bordi mobile */
         }
 
-        #full-cart-details.hidden-cart {
-            display: none;
-            opacity: 0;
-        }
+        #full-cart-details.hidden-cart { display: none; }
 
         #cart-inner-full {
             background-color: white;
-            width: 92%;
-            max-width: 500px;
-            max-height: 85vh;
+            width: 95%; /* Quasi tutta la larghezza su mobile */
+            max-width: 500px; /* Non troppo largo su PC */
+            max-height: 85vh; /* Non esce dallo schermo */
             border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            padding: 20px;
             overflow-y: auto;
             position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .close-cart-desktop-btn {
-            position: absolute; 
-            top: 15px;
-            right: 15px;
-            background: #f1f1f1;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: absolute; top: 12px; right: 12px;
+            background: #eee; border: none; width: 30px; height: 30px;
+            border-radius: 50%; cursor: pointer; font-size: 1.2rem;
         }
 
-        #cart-inner-full h2 {
-            margin-top: 0;
-            font-size: 1.3rem;
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        #cart-inner-full h2 { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2rem; }
+        .total-summary-full { font-size: 1.5rem; font-weight: bold; text-align: center; color: #28a745; margin: 15px 0; }
+        .main-action-btn { background-color: #28a745; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; }
+        .simple-btn-full { background-color: #6c757d; color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; margin-top: 10px; }
 
-        .total-summary-full {
-            font-size: 1.6rem;
-            font-weight: bold;
-            text-align: center;
-            color: #28a745;
-            margin: 20px 0;
-        }
-
-        .main-action-btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .simple-btn-full {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 600px) {
-            #cart-inner-full {
-                padding: 20px 15px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -221,54 +162,41 @@
         <div class="header-content">
             <div class="header-main-row">
                 <h1>STAFF ORDER APP</h1>
-                <button id="logout-btn" class="simple-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                <button id="logout-btn" class="simple-btn"><i class="fas fa-sign-out-alt"></i></button>
             </div>
-            
             <div class="header-table-controls">
-                <label for="table-select">Seleziona Tavolo:</label>
                 <select id="table-select"></select>
-                <p style="display: inline-block; margin-left: 15px;">Ordine per Tavolo: <strong><span id="table-id">NESSUNO</span></strong></p>
+                <p>Tavolo: <strong><span id="table-id">---</span></strong></p>
             </div>
         </div>
-        
         <nav id="quick-links" class="category-nav"></nav>
     </header>
 
     <main>  
         <section id="menu-container" style="pointer-events: none; opacity: 0.5;"> 
             <div class="loading-state">
-                <i class="fas fa-hand-pointer"></i>
-                <h2>Seleziona un tavolo per iniziare l'ordinazione.</h2>
+                <h2>Seleziona un tavolo</h2>
             </div>
         </section>
-        <div id="order-anchor-point" style="height: 1px;"></div> 
-    </main>
+        <div id="order-anchor-point" style="height: 60px;"></div> </main>
     
     <section id="cart-fixed-bar-staff" class="hidden"> 
         <button id="toggle-full-cart-btn">
-            <i class="fas fa-shopping-cart"></i>
-            VEDI ORDINE (<span id="cart-item-count">0</span>) - Totale: € <span id="total-price-fixed">0.00</span>
+            <i class="fas fa-shopping-cart"></i> (<span id="cart-item-count">0</span>) - € <span id="total-price-fixed">0.00</span>
         </button>
     </section>
     
     <section id="full-cart-details" class="hidden-cart">
         <div id="cart-inner-full"> 
-            <button class="close-cart-desktop-btn" id="close-cart-desktop-btn" aria-label="Chiudi">&times;</button>
-
+            <button class="close-cart-desktop-btn" id="close-cart-desktop-btn">&times;</button>
             <h2>Riepilogo Tavolo <span id="cart-table-display-full">...</span></h2>
-            
-            <ul id="cart-list">
-                </ul>
-            
-            <div class="order-notes-section" style="margin-top:15px;">
-                <label for="order-notes" style="display:block; margin-bottom:5px;"><strong>Note Ordine:</strong></label>
-                <textarea id="order-notes" rows="3" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px;" placeholder="Allergie o modifiche..."></textarea>
+            <ul id="cart-list"></ul>
+            <div class="order-notes-section">
+                <textarea id="order-notes" rows="3" style="width:100%; border:1px solid #ddd; border-radius:8px; padding:10px;" placeholder="Note ordine..."></textarea>
             </div>
-
             <p class="total-summary-full">Totale: € <span id="total-price-full">0.00</span></p>
-            
-            <button id="send-order-btn" class="main-action-btn">INVIA IN CUCINA</button>
-            <button id="close-cart-btn" class="simple-btn-full"><i class="fas fa-times"></i> Torna al Menu</button>
+            <button id="send-order-btn" class="main-action-btn">INVIA ORDINE</button>
+            <button id="close-cart-btn" class="simple-btn-full">Chiudi</button>
         </div>
     </section>
     
