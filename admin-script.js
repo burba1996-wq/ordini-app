@@ -293,30 +293,25 @@ function updateTableGridAppearance() {
         const tableId = button.dataset.table;
         const order = activeTableOrders[tableId];
 
-        // Rimuovi tutte le classi di stato (incluso 'free')
-        Object.values(STATUS_COLORS).forEach(color => button.classList.remove(color));
-        
-        // Mantieni lo stato "selected" solo se era già selezionato prima di applicare il nuovo stato
-        const isSelected = button.classList.contains('selected');
-        button.classList.remove('selected');
+        // 1. Reset totale degli stati per evitare sovrapposizioni di colori
+        button.classList.remove('pending', 'executed', 'free', 'selected');
 
-
+        // 2. Applica lo stato in base all'ordine presente nell'oggetto globale activeTableOrders
         if (order) {
-            // Aggiungi la classe di stato in base all'ordine attivo
             const statusClass = STATUS_COLORS[order.status] || 'pending';
             button.classList.add(statusClass);
-            
-            // Se questo tavolo è quello selezionato, ripristina la classe 'selected'
-            if (selectedTableId === tableId || isSelected) {
-                button.classList.add('selected');
-            }
         } else {
-            // Tavolo libero
+            // Se non c'è ordine, il tavolo è libero
             button.classList.add('free');
-            // Se il tavolo appena liberato era quello selezionato, deseleziona
+            // Se il tavolo era selezionato ma ora è libero, resettiamo la variabile
             if (selectedTableId === tableId) {
                  selectedTableId = null;
             }
+        }
+
+        // 3. Applica la classe 'selected' se questo è il tavolo cliccato dall'admin
+        if (selectedTableId === tableId) {
+            button.classList.add('selected');
         }
     });
 }
