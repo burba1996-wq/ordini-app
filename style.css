@@ -350,9 +350,9 @@ a {
 
 #cart-inner-full {
     background-color: #fff;
-    width: 100%;
-    max-height: 80%;
-    padding: 8px;
+    width: 95%;
+    max-height: 70%;
+    padding: 4px;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     overflow-y: auto;
