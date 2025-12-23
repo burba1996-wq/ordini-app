@@ -350,8 +350,8 @@ a {
 
 #cart-inner-full {
     background-color: #fff;
-    width: 95%;
-    max-height: 70%;
+    width: 90%;
+    max-height: 80%;
     padding: 4px;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
@@ -362,14 +362,14 @@ a {
 #cart-list {
     list-style: none;
     padding: 0;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 .staff-cart-item-compact {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 0;
+    padding: 3px 0;
     border-bottom: 1px dashed #eee;
 }
 
