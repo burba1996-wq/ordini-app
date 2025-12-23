@@ -435,18 +435,26 @@ function renderHistoryCard(order) {
     card.className = 'order-card completed history-card';
 
     const time = formatTimestampToTime(order.completionTime, true);
-    
-    // Mappatura articoli anche per lo storico
-    const itemsHtml = order.items.map(i => {
-        const optionsHtml = (i.options && i.options.length > 0) 
-            ? `<div class="admin-item-options italic-small"><i class="fas fa-plus-circle"></i> ${i.options.join(', ')}</div>` 
+
+    // Mappatura articoli con estrazione corretta delle opzioni (checkbox)
+    const itemsHtml = order.items.map(item => {
+        // Estraiamo le opzioni e le uniamo con una virgola
+        const optionsText = (item.options && Array.isArray(item.options) && item.options.length > 0) 
+            ? item.options.join(', ') 
+            : '';
+
+        // Se ci sono opzioni, creiamo il div dedicato, altrimenti stringa vuota
+        const optionsHtml = optionsText 
+            ? `<div class="admin-item-options" style="color: #666; font-size: 0.8em; font-style: italic; margin-left: 28px;">
+                <i class="fas fa-plus-circle"></i> ${optionsText}
+               </div>` 
             : '';
             
         return `
             <li>
-                <div class="item-main-row">
-                    <span><strong>${i.quantity}x</strong> ${i.name}</span>
-                    <span class="item-price">€${(i.quantity * i.price).toFixed(2)}</span>
+                <div class="item-main-row" style="display: flex; justify-content: space-between; width: 100%;">
+                    <span><strong>${item.quantity}x</strong> ${item.name}</span>
+                    <span class="item-price">€${(item.quantity * item.price).toFixed(2)}</span>
                 </div>
                 ${optionsHtml}
             </li>`;
