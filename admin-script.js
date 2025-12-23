@@ -206,7 +206,6 @@ function displayOrderDetails(order) {
         `;
     }).join('');
 
-    // ... resto della funzione (note e bottoni) ...
     const noteHtml = order.notes
         ? `<div class="order-note-display"><strong><i class="fas fa-sticky-note"></i> NOTA:</strong> ${order.notes}</div>`
         : '';
