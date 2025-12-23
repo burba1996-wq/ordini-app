@@ -1339,3 +1339,19 @@ a {
     align-items: flex-start;
     padding: 8px 0;
 }
+
+@media (max-width: 600px) {
+    .menu-item-card {
+        flex-direction: row; /* Nome e pulsante sulla stessa riga per risparmiare altezza */
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .item-info {
+        flex: 1; /* Il nome prende lo spazio a sinistra */
+        border-bottom: none;
+    }
+    .item-options-container {
+        width: 100%; /* Le opzioni vanno sotto il nome */
+        border-top: 1px solid #eee;
+    }
+}
